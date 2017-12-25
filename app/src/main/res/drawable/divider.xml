@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <size android:height="4dp"> </size>
+    <!--这是一种渐变的效果-->
+    <gradient
+        android:centerColor="#ffffff"
+        android:startColor="#c9c9c9"
+        android:endColor="#dd70c8"
+        android:type="linear"/>
+    <!--这是另一种纯色的分隔符
+    <solid android:color="@color/lightGrey"></solid>
+    -->
+</shape>

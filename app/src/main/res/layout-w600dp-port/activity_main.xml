@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <android.support.v7.widget.CardView
+        android:id="@+id/recipe_detail_container"
+        app:cardElevation="@dimen/detail_card_elevation"
+        app:cardPreventCornerOverlap="false"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/abc_list_item_padding_horizontal_material"
+        android:layout_marginRight="@dimen/abc_list_item_padding_horizontal_material" />
+
+    <!-- This layout is a two-pane layout for the Items master/detail flow. -->
+    <fragment
+        android:id="@+id/fragment_recipe_main"
+        android:name="com.example.wolfgao.mybakingapp.FragmentRecipeMain"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context="com.example.wolfgao.mybakingapp.FragmentRecipeMain"
+        tools:layout="@android:layout/list_content"/>
+
+</RelativeLayout>

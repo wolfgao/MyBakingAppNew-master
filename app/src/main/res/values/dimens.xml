@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="detail_container_bottom_margin">20dp</dimen>
+    <dimen name="detail_card_elevation">6dp</dimen>
+    <dimen name="list_item_extra_padding">2dp</dimen>
+    <dimen name="detail_view_padding">@dimen/abc_list_item_padding_horizontal_material</dimen>
+    <dimen name="videoview_default_height">200dp</dimen>
+    <dimen name="progressbar_small">20dp</dimen>
+
+    <!--
+Refer to App Widget Documentation for margin information
+http://developer.android.com/guide/topics/appwidgets/index.html#CreatingLayout
+    -->
+    <dimen name="widget_margin">8dp</dimen>
+</resources>
