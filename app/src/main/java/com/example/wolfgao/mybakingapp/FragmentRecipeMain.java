@@ -1,12 +1,14 @@
 package com.example.wolfgao.mybakingapp;
 
-import android.content.ContentValues;
-import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.OrientationHelper;
@@ -20,62 +22,75 @@ import android.widget.TextView;
 
 import com.example.wolfgao.mybakingapp.data.MyBakingContract;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
+ * 通过LoaderManager来完成Activity和Fragement之间的异步数据查询和同步：
+ * LoaderManager：一个抽像类，关联到一个Activity或Fragment，管理一个或多个装载器的实例。这帮助一个应用管理那些与Activity或Fragment的生命周期相关的长时间运行的的操作。
+ * 最常见的方式是与一个CursorLoader一起使用，然而应用是可以随便写它们自己的装载器以加载其它类型的数据。
+ 每个activity或fragment只有一个LoaderManager。但是一个LoaderManager可以拥有多个装载器。
+
+ LoaderManager.LoaderCallbacks： 一个用于客户端与LoaderManager交互的回调接口。例如，你使用回调方法onCreateLoader()来创建一个新的装载器。
+ * 参见 http://blog.csdn.net/yangdeli888/article/details/7911862
  * Created by gaochuang on 2017/10/27.
  */
 
-public class FragmentRecipeMain extends Fragment {
+public class FragmentRecipeMain extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>, SharedPreferences.OnSharedPreferenceChangeListener{
+
     private RecyclerView mRecycleView;
-    private List<Object> mList;
+    private List<Object> mList = new ArrayList<Object>();
     private MyRecycleAdapter mRecycleAdapter;
-    private int mResponseCode;
-    private String DEBUG_TAG;
     private TextView mEmpty_View;
     private boolean mUseDetailFragment;
     private int mPosition = ListView.INVALID_POSITION;
 
     //用于反转或者resume时刻存取数据的标识
     private static final String SELECTED_KEY = "selected_position";
+    public static final String LOG_TAG = FragmentRecipeMain.class.getSimpleName();
 
-    //
-    private static final String[] NOTIFY_CAKE_PROJECTION = new String[] {
+    private static final int RECIPE_LOADER = 0;
+
+    //In Recipe view we are only showing a small subset of the stored data, so just define the columns we need.
+    private static final String[] RECIPE_COLUMNS = {
+            MyBakingContract.CakesEntry.TABLE_NAME + "." + MyBakingContract.CakesEntry._ID,
             MyBakingContract.CakesEntry.COLUMN_CAK_KEY,
             MyBakingContract.CakesEntry.COLUMN_CAK_NAME,
-            MyBakingContract.CakesEntry.COLUMN_CAK_INGRE
+            MyBakingContract.CakesEntry.COLUMN_CAK_IMG
     };
 
-    // these indices must match the projection
-    private static final int INDEX_CAKE_ID = 0;
-    private static final int INDEX_CAKE_NAME = 1;
-    private static final int INDEX_CAKE_INGRE = 2;
+    //There indices are tied to RECIPE_COLUMNS, if RECIPE_COLUMNS changes, these must be changed
+    static final int COL_CAKES_ID = 0;
+    static final int COL_CAKES_KEY = 1;
+    static final int COL_CAKES_NAME = 2;
+    static final int COL_CAKES_IMG = 3;
 
-    private final static String RECIPEID = "id";
-    private final static String RECIPENAME = "name";
-    private final static String RECIPEINGREDIENTS = "ingredients";
-    private final static String RECIPESTEPS = "steps";
-    private final static String RECIPEIMAGE = "image";
-    public static final String STEP_ID = "id";
-    public static final String STEP_SHORT = "shortDescription";
-    private final static String STEP_DESC = "description";
-    private final static String STEP_VIDEO = "videoURL";
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
 
-    public static final String ACTION_DATA_UPDATED = "com.example.wolfgao.mybakingapp.ACTION_DATA_UPDATED";
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        //This is called when a new load to be created.
+        //To only show Cakes name and Cakes Ingredients, so filter the query to return Recipes for all
+        Uri recipeForAllShowed = MyBakingContract.CakesEntry.buildIdUri()
+        return new CursorLoader(getActivity(),
+
+
+        )
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+
+    }
+
 
     /**
      * A callback interface that all activities containing this fragment must
@@ -91,7 +106,6 @@ public class FragmentRecipeMain extends Fragment {
     public void onCreate(Bundle savedInstance) {
         super.onCreate(savedInstance);
         setHasOptionsMenu(true);
-        DEBUG_TAG = getActivity().getClass().getName();
     }
 
     /**
@@ -105,7 +119,6 @@ public class FragmentRecipeMain extends Fragment {
         //通过ItemDecoration，控制item间的背景；通过ItemAnimator，控制动态增删item的动画；
         mRecycleView = (RecyclerView)rootView.findViewById(R.id.recycler_main_page);
         mEmpty_View = (TextView)rootView.findViewById(R.id.empty_view);
-        initData();
 
         //设置Layout部分 step 1#
         LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
@@ -158,15 +171,6 @@ public class FragmentRecipeMain extends Fragment {
         mRecycleAdapter.setTwoPane(mUseDetailFragment);
 
         return rootView;
-    }
-
-
-    //作为公共接口来实现初始化，为widgets数据所用
-    public void initData() {
-        mList = new ArrayList<Object>();
-
-        GetRecipeData recipeData = new GetRecipeData();
-        recipeData.execute();
     }
 
     public void setTwoPane(boolean useDetailFragment) {
@@ -236,213 +240,5 @@ public class FragmentRecipeMain extends Fragment {
             outState.putInt(SELECTED_KEY, mPosition);
         }
         super.onSaveInstanceState(outState);
-    }
-    /**
-     * 此处增加这部分代码主要是有时候AsyncTask只会执行一次，第一次失败后，不会在此执行
-     * 参见文章：
-     * http://blog.csdn.net/hitlion2008/article/details/7983449
-     */
-    private static ExecutorService SINGLE_TASK_EXECUTOR;
-    private static ExecutorService LIMITED_TASK_EXECUTOR;
-    private static ExecutorService FULL_TASK_EXECUTOR;
-
-    static {
-        SINGLE_TASK_EXECUTOR = (ExecutorService) Executors.newSingleThreadExecutor();
-        LIMITED_TASK_EXECUTOR = (ExecutorService) Executors.newFixedThreadPool(5);
-        FULL_TASK_EXECUTOR = (ExecutorService) Executors.newCachedThreadPool();
-    };
-    /**
-     * 私有类，开启background线程开始干活，由于只是get，不需要上传参数，因此前两个参数都是void
-     * 返回一个Json String进行处理
-     */
-    private class GetRecipeData extends AsyncTask<Void, Void, String> {
-
-        private String serverURL;
-        private String RecipeJson = null;
-
-        //onPreExecute方法用于在执行后台任务前做一些UI操作
-        @Override
-        protected void onPreExecute() {
-            //Can't open the website provided by Udacity, so I created a website myself to provide Json file.
-            //https://d17h27t6h515a5.cloudfront.net/topher/2017/May/59121517_baking/baking.json
-            String serverIP = Utility.getServerIP(getActivity().getApplicationContext(), "config.xml", "ip");
-            String filePath = Utility.getServerIP(getActivity().getApplicationContext(), "config.xml", "filePath");
-            serverURL = serverIP + filePath;
-            Log.i(DEBUG_TAG, "onPreExecute() called，server IP is "+serverIP+"; The file path is " + filePath);
-        }
-
-        @Override
-        protected void onPostExecute(String JsonStr) {
-            String id;
-            String cakeName;
-            String image;
-            String ingredients;
-
-
-            Log.i(DEBUG_TAG, "onPostExecute() called");
-            if (JsonStr == null) {
-                Log.e(DEBUG_TAG,"Failed to get Json string from server.");
-            }
-            else {
-                try {
-                    RecipeJsonData recipeJsonData = new RecipeJsonData(JsonStr);
-                    JSONArray cakeArray = recipeJsonData.getObjectArray();
-
-                    int num = cakeArray.length();
-                    // Insert the new weather information into the database
-                    Vector<ContentValues> cakeVector = new Vector<ContentValues>(cakeArray.length());
-
-                    for (int i = 0; i < num; i++) {
-                        JSONObject cake = cakeArray.getJSONObject(i);
-                        id = cake.getString(RECIPEID);
-                        cakeName = cake.getString(RECIPENAME); //using cake name as step id to direct to steps table.
-                        ingredients = cake.getString(RECIPEINGREDIENTS);
-                        image = cake.getString(RECIPEIMAGE);
-                        JSONArray stepArray = cake.getJSONArray(RECIPESTEPS);
-
-                        ContentValues cakeValues = new ContentValues();
-                        cakeValues.put(MyBakingContract.CakesEntry.COLUMN_CAK_KEY, id);
-                        cakeValues.put(MyBakingContract.CakesEntry.COLUMN_CAK_NAME, cakeName);
-                        cakeValues.put(MyBakingContract.CakesEntry.COLUMN_CAK_INGRE, ingredients);
-                        cakeValues.put(MyBakingContract.CakesEntry.COLUMN_CAK_IMG,image);
-
-                        cakeVector.add(cakeValues);
-
-                        int stepNo = stepArray.length();
-                        Vector<ContentValues> stepVector = new Vector<ContentValues>(stepNo);
-
-                        for (int j = 0; j<stepNo; j++){
-                            String step_no = stepArray.getJSONObject(j).getString(STEP_ID);
-                            String step_short = stepArray.getJSONObject(j).getString(STEP_SHORT);
-                            String step_desc = stepArray.getJSONObject(j).getString(STEP_DESC);
-                            String step_video = stepArray.getJSONObject(j).getString(STEP_VIDEO);
-                            ContentValues stepValues = new ContentValues();
-                            stepValues.put(MyBakingContract.StepsEntry.COLUMN_CAKE_NAME,cakeName);
-                            stepValues.put(MyBakingContract.StepsEntry.COLUMN_STEP_NO,step_no);
-                            stepValues.put(MyBakingContract.StepsEntry.COLUMN_STEP_SHORT,step_short);
-                            stepValues.put(MyBakingContract.StepsEntry.COLUMN_STEP_DESC, step_desc);
-                            stepValues.put(MyBakingContract.StepsEntry.COLUMN_STEP_VIDEO,step_video);
-
-                            stepVector.add(stepValues);
-                            //插入数据库
-                            int inserted = insertDB(stepVector, MyBakingContract.StepsEntry.CONTENT_URI);
-                            Log.i(DEBUG_TAG, "成功插入steps 表 "+inserted+" 条记录！");
-                        }
-
-                        int inserted = insertDB(cakeVector, MyBakingContract.CakesEntry.CONTENT_URI);
-                        Log.i(DEBUG_TAG, "成功插入cakess 表 "+inserted+" 条记录！");
-                        updateWidgets();
-                        mRecycleAdapter.addItem(cakeArray.get(i), i);
-
-                    }
-
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                    Log.e(DEBUG_TAG,"初始化Json发送错误！");
-                }
-                // This will only happen if there was an error getting or parsing the forecast.
-            }
-            updateEmptyView();
-        }
-
-        private int insertDB(Vector<ContentValues> vector, Uri contentUri) {
-            int inserted = 0;
-            if(vector.size()>0){
-                ContentValues[] cvArray = new ContentValues[vector.size()];
-                vector.toArray(cvArray);
-                inserted = getContext().getContentResolver().bulkInsert(contentUri, cvArray);
-            }
-            updateWidgets();
-            return inserted;
-        }
-
-        private void updateWidgets() {
-            Context context = getContext();
-            // Setting the package ensures that only components in our app will receive the broadcast
-            Intent dataUpdatedIntent = new Intent(ACTION_DATA_UPDATED)
-                    .setPackage(context.getPackageName());
-            context.sendBroadcast(dataUpdatedIntent);
-        }
-
-        @Override
-        protected String doInBackground(Void... params) {
-            //获取SharedPreference的值，传入参数进行解析
-            HttpURLConnection conn = null;
-            InputStream is = null;
-            BufferedReader reader = null;
-
-            try {
-
-                URL myURL = new URL(serverURL);
-                Log.i(DEBUG_TAG, myURL.toString() + "\n" + "File:" + myURL.getFile());
-
-                conn = (HttpURLConnection) myURL.openConnection();
-                //设置链接超时5s
-                conn.setConnectTimeout(8000);
-                //设置读取超时3秒
-                conn.setReadTimeout(3*1000);
-                // 设置编码格式
-                conn.setRequestProperty("Charset", "UTF-8");
-                conn.setRequestProperty("Accept-Language", "zh-CN");
-                conn.setRequestProperty(
-                        "Accept",
-                        "image/gif, image/jpeg, image/pjpeg, image/pjpeg, " +
-                                "application/x-shockwave-flash, application/xaml+xml, " +
-                                "application/vnd.ms-xpsdocument, application/x-ms-xbap, " +
-                                "application/x-ms-application, application/vnd.ms-excel, " +
-                                "application/vnd.ms-powerpoint, application/msword, */*");
-                // 设置HTTP获取方式
-                conn.setRequestMethod("GET");
-                //设置为长连接
-                //conn.setRequestProperty("Connection", "Keep-Alive");
-                conn.connect();
-                mResponseCode = conn.getResponseCode();
-                Log.d(DEBUG_TAG, "The response code is: " + mResponseCode);
-
-                if (mResponseCode == 200) {//200 status_ok
-                    is = conn.getInputStream();
-                    if (is == null) {
-                        //do nothing, no any return data
-                        RecipeJson = null;
-                        return null;
-                    }
-                    //we get data from web site, but need convert them to Jsonstring
-                    reader = new BufferedReader(new InputStreamReader(is));
-                    String line;
-                    StringBuffer buffer = new StringBuffer();
-
-                    while ((line = reader.readLine()) != null) {
-                        buffer.append(line + "\n");
-                    }
-                    if (buffer.length() == 0) {
-                        RecipeJson = null;
-                        return null;
-                    }
-                    RecipeJson = buffer.toString();
-                    //Print returned Json information.
-                    Log.i(DEBUG_TAG, RecipeJson);
-                    // Makes sure that the InputStream is closed after the app finished using it.
-                    is.close();
-                }
-            } catch (IOException e) {
-                Log.e(DEBUG_TAG, "Error ", e);
-                // If the code didn't successfully get the weather data, there's no point in attempting
-                // to parse it.
-                RecipeJson = null;
-            } finally {
-                if (conn != null) {
-                    conn.disconnect();
-                }
-                if (reader != null) {
-                    try {
-                        reader.close();
-                    } catch (final IOException e) {
-                        Log.e("PlaceholderFragment", "Error closing stream", e);
-                    }
-                }
-            }
-            return RecipeJson;
-        }
-
     }
 }

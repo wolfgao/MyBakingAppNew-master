@@ -12,6 +12,9 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <!-- Sync adaptor must need the 2 permissions  -->
+    <uses-permission android:name="android.permission.WRITE_SYNC_SETTINGS" />
+    <uses-permission android:name="android.permission.READ_SYNC_SETTINGS" />
 
     <application
         android:allowBackup="true"
@@ -32,6 +35,20 @@
             android:parentActivityName=".MainActivity">
 
         </activity>
+
+        <!-- The SyncAdapter service -->
+        <service
+            android:name=".sync.MyBakingSyncService"
+            android:exported="true"
+            android:process=":sync">
+            <intent-filter>
+                <action android:name="android.content.SyncAdapter" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.content.SyncAdapter"
+                android:resource="@xml/syncadapter" />
+        </service>
 
         <provider
             android:authorities="com.example.wolfgao.mybakingapp"

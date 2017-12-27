@@ -34,7 +34,6 @@ public class MyBakingContract {
                 ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_CAKES;
 
         public static final String TABLE_NAME = "cakes";
-        //This is the primary key
         public static final String COLUMN_CAK_KEY = "cake_id";
         //This is the foreign key direct to the steps table
         public static final String COLUMN_CAK_NAME = "cake_name";
@@ -51,7 +50,7 @@ public class MyBakingContract {
             return CONTENT_URI.buildUpon().appendPath(id).build();
         }
 
-        // Return Uri with parameter record id.
+        // Return Uri with parameter record id "_ID".
         public static Uri buildCakesUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);
         }

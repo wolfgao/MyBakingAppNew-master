@@ -15,6 +15,7 @@
     <string name="recipe_name">Recipe Name</string>
     <string name="previous"> Previous </string>
     <string name="next"> Next </string>
+    
     <!-- Exoplayer string list -->
     <string name="retry">Retry</string>
     <string name="video">Video</string>
@@ -59,5 +60,14 @@
 
     <string name="appwidget_text">EXAMPLE</string>
     <string name="add_widget">Add widget</string>
+
+    <!-- SyncAdapter related -->
+    <string name="sync_account_type">wolfgao.example.com</string>
+    <string name="content_authority">com.example.wolfgao.mybakingapp</string>
+    <string name="pref_server_status_key">server-status</string>
+
+    <!-- Strings related to Notification Enabled preference -->
+    <string name="pref_last_notification">last_notification</string>
+
 
 </resources>
