@@ -1,6 +1,7 @@
 package com.example.wolfgao.mybakingapp;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.support.v7.widget.RecyclerView;
@@ -10,6 +11,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.example.wolfgao.mybakingapp.thirdLib.RecyclerViewCursorAdapter;
 
 import org.json.JSONObject;
 
@@ -24,7 +27,8 @@ import java.util.List;
  * Created by gaochuang on 2017/10/22.
  */
 
-public class MyRecycleAdapter extends RecyclerView.Adapter<MyRecycleAdapter.MyRecycleAdapterViewHolder> {
+public class MyRecycleAdapter extends RecyclerViewCursorAdapter<MyRecycleAdapter.RecipeViewHolder> {
+
     public static final String ACTION_DATA_UPDATED = "com.example.wolfgao.mybakingapp.ACTION_DATA_UPDATED";
     private List<Object> mData;
     private LayoutInflater inflater;
@@ -62,21 +66,19 @@ public class MyRecycleAdapter extends RecyclerView.Adapter<MyRecycleAdapter.MyRe
     }
 
     @Override
-    public MyRecycleAdapterViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public RecipeViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         int layoutID =R.layout.recipe_card;
         View view = LayoutInflater.from(parent.getContext()).inflate(layoutID, parent, false);
         view.setFocusable(true);
-        return new MyRecycleAdapterViewHolder(view);
+        return new RecipeViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(final MyRecycleAdapterViewHolder holder, final int position) {
+    public void onBindViewHolder(final RecipeViewHolder holder, Cursor cursor) {
 
         JSONObject recipeData = (JSONObject) mData.get(position);
         String recipeName = RecipeJsonData.getRecipeName(recipeData);
-        //String recipeDesc = RecipeJsonData.getRecipeDesc(recipeData);
         holder.tv_name.setText(recipeName);
-        //holder.tv_desc.setText(recipeDesc);
         String imageUrl = RecipeJsonData.getRecipeImageUrl(recipeData);
 
         //获取图片资源
@@ -121,9 +123,15 @@ public class MyRecycleAdapter extends RecyclerView.Adapter<MyRecycleAdapter.MyRe
         }
     }
 
+
     @Override
     public int getItemCount() {
         return mData==null? 0 :mData.size();
+    }
+
+    @Override
+    protected void onContentChanged() {
+
     }
 
     public Object getItem(int position){
@@ -140,7 +148,7 @@ public class MyRecycleAdapter extends RecyclerView.Adapter<MyRecycleAdapter.MyRe
     /**
      * Cache of the children views for a forecast list item.
      */
-    public class MyRecycleAdapterViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+    public class RecipeViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         final TextView tv_name;
         //final TextView tv_desc;
         final ImageView iv;
@@ -149,7 +157,7 @@ public class MyRecycleAdapter extends RecyclerView.Adapter<MyRecycleAdapter.MyRe
          * Constructor
          * @param view
          */
-        public MyRecycleAdapterViewHolder(View view) {
+        public RecipeViewHolder(View view) {
             super(view);
             tv_name = (TextView) view.findViewById(R.id.recipe_name);
             //tv_desc=(TextView) view.findViewById(R.id.text_short_desc);

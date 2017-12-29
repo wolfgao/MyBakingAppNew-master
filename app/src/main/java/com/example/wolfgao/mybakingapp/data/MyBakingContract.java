@@ -55,11 +55,17 @@ public class MyBakingContract {
             return ContentUris.withAppendedId(CONTENT_URI, id);
         }
 
+
+
         /**
          * Uri结构三种方式
          [scheme:]scheme-specific-part[#fragment]
          [scheme:][//authority][path][?query][#fragment]
          [scheme:][//host:port][path][?query][#fragment]
+         content://media/internal/images  这个URI将返回设备上存储的所有图片
+         content://contacts/people/  这个URI将返回设备上的所有联系人信息
+         content://contacts/people/45 这个URI返回单个结果（联系人信息中ID为45的联系人记录）转为Uri为：
+         Uri person = ContentUris.withAppendedId(People.CONTENT_URI,  45);
          */
 
         /**

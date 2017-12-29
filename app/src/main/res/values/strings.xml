@@ -15,7 +15,7 @@
     <string name="recipe_name">Recipe Name</string>
     <string name="previous"> Previous </string>
     <string name="next"> Next </string>
-    
+
     <!-- Exoplayer string list -->
     <string name="retry">Retry</string>
     <string name="video">Video</string>

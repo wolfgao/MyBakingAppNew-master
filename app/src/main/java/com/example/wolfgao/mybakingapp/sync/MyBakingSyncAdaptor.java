@@ -225,7 +225,7 @@ public class MyBakingSyncAdaptor extends AbstractThreadedSyncAdapter {
                     return;
                 }
                 mRecipeJson = buffer.toString();
-                getRecipeInfofromJason(mRecipeJson);
+                getRecipeInfoFromJason(mRecipeJson);
                 //Print returned Json information.
                 Log.i(DEBUG_TAG, mRecipeJson);
                 // Makes sure that the InputStream is closed after the app finished using it.
@@ -273,7 +273,7 @@ public class MyBakingSyncAdaptor extends AbstractThreadedSyncAdapter {
      * @return
      */
 
-    private void getRecipeInfofromJason(String jsonStr){
+    private void getRecipeInfoFromJason(String jsonStr){
         String id;
         String cakeName;
         String image;
@@ -352,5 +352,12 @@ public class MyBakingSyncAdaptor extends AbstractThreadedSyncAdapter {
         Intent dataUpdatedIntent = new Intent(ACTION_DATA_UPDATED)
                 .setPackage(context.getPackageName());
         context.sendBroadcast(dataUpdatedIntent);
+    }
+
+    private void notifyWeather(){
+
+    }
+    public static void initializeSyncAdapter(Context context) {
+        getSyncAccount(context);
     }
 }

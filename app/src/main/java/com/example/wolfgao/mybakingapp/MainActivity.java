@@ -4,6 +4,8 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
 
+import com.example.wolfgao.mybakingapp.sync.MyBakingSyncAdaptor;
+
 public class MainActivity extends AppCompatActivity implements FragmentRecipeMain.Callback {
 
 
@@ -41,7 +43,7 @@ public class MainActivity extends AppCompatActivity implements FragmentRecipeMai
                 .findFragmentById(R.id.fragment_recipe_main);
         fragmentRecipeMain.setTwoPane(mTwoPane);
 
-        //fragmentRecipeMain.initData();
+        MyBakingSyncAdaptor.initializeSyncAdapter(this);
 
         //关于Back的action bar
         android.support.v7.app.ActionBar actionBar = getSupportActionBar();

@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
@@ -74,11 +75,14 @@ public class FragmentRecipeMain extends Fragment implements LoaderManager.Loader
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         //This is called when a new load to be created.
         //To only show Cakes name and Cakes Ingredients, so filter the query to return Recipes for all
-        Uri recipeForAllShowed = MyBakingContract.CakesEntry.buildIdUri()
+        Uri recipeForAllShowed = MyBakingContract.CakesEntry.CONTENT_URI;
         return new CursorLoader(getActivity(),
-
-
-        )
+            recipeForAllShowed,
+            RECIPE_COLUMNS,
+                null,
+                null,
+                null
+        );
     }
 
     @Override
@@ -106,6 +110,20 @@ public class FragmentRecipeMain extends Fragment implements LoaderManager.Loader
     public void onCreate(Bundle savedInstance) {
         super.onCreate(savedInstance);
         setHasOptionsMenu(true);
+    }
+
+    @Override
+    public void onResume() {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        sp.registerOnSharedPreferenceChangeListener(this);
+        super.onResume();
+    }
+
+    @Override
+    public void onPause() {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        sp.unregisterOnSharedPreferenceChangeListener(this);
+        super.onPause();
     }
 
     /**
@@ -194,41 +212,32 @@ public class FragmentRecipeMain extends Fragment implements LoaderManager.Loader
         //check if finished adaptor inilization.
         if(mRecycleAdapter.getItemCount() == 0){
             //Network is okay,but may not get data from server, so need check the response code.
-            if (mResponseCode != 200) { //200 okay
-                switch (mResponseCode) {
-                    case 404: //Not Found 无法找到指定位置的资源,这也是一个常用的应答
-                        message = R.string.empty_recipe_list_not_found;
-                        break;
-                    case 403: //Forbidden 资源不可用,服务器理解客户的请求，但拒绝处理它。
-                        message = R.string.empty_recipe_list_forbidden;
-                        break;
-                    case 408: //Request Timeout 在服务器许可的等待时间内，客户一直没有发出任何请求。
-                        message = R.string.empty_recipe_list_timeout;
-                        break;
-                    case 500: //Internal Server Error 服务器遇到了意料不到的情况，不能完成客户的请求。
-                        message = R.string.empty_recipe_list_server_error;
-                        break;
-                    default: //other values，服务器不知道发生什么原因，我们都归结为不可获知的错误
-                        message = R.string.empty_recipe_list_unknown;
-                        Log.e(DEBUG_TAG, "链接server失败，不可获知的原因，response code：" + mResponseCode);
-                        break;
-                }
-                mEmpty_View.setText(message);
-                mEmpty_View.setVisibility(View.VISIBLE);
+            SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
+            int resCode = sp.getInt(getContext().getString(R.string.pref_server_status_key), 400);
+            switch (resCode) {
+                case 404: //Not Found 无法找到指定位置的资源,这也是一个常用的应答
+                    message = R.string.empty_recipe_list_not_found;
+                    break;
+                case 403: //Forbidden 资源不可用,服务器理解客户的请求，但拒绝处理它。
+                    message = R.string.empty_recipe_list_forbidden;
+                    break;
+                case 408: //Request Timeout 在服务器许可的等待时间内，客户一直没有发出任何请求。
+                    message = R.string.empty_recipe_list_timeout;
+                    break;
+                case 500: //Internal Server Error 服务器遇到了意料不到的情况，不能完成客户的请求。
+                    message = R.string.empty_recipe_list_server_error;
+                    break;
+                default: //other values，服务器不知道发生什么原因，我们都归结为不可获知的错误
+                    message = R.string.empty_recipe_list_unknown;
+                    Log.e(LOG_TAG, "链接server失败，不可获知的原因，response code：" + resCode);
+                    break;
             }
+            mEmpty_View.setText(message);
+            mEmpty_View.setVisibility(View.VISIBLE);
         }
         else{
-                mEmpty_View.setVisibility(View.GONE);
+            mEmpty_View.setVisibility(View.GONE);
         }
-    }
-
-    /**
-     * Back to this screen, need to restore the data and finish the UI
-     */
-    @Override
-    public void onResume() {
-
-        super.onResume();
     }
 
     @Override
