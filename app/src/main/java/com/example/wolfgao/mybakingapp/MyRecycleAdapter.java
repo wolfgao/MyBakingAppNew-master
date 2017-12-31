@@ -14,39 +14,32 @@ import android.widget.TextView;
 
 import com.example.wolfgao.mybakingapp.thirdLib.RecyclerViewCursorAdapter;
 
-import org.json.JSONObject;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.List;
 
 /**
  * Created by gaochuang on 2017/10/22.
+ * Modified by Gaochuang on 2017/12/29.
+ * In this update, using the third lib class RecyclerViewCursorAdapter will can be added by RecyclerView.
+ * On the other hand, it can handle data as a CursorAdapter, which was supposed to be used in Listview only.
  */
 
 public class MyRecycleAdapter extends RecyclerViewCursorAdapter<MyRecycleAdapter.RecipeViewHolder> {
 
     public static final String ACTION_DATA_UPDATED = "com.example.wolfgao.mybakingapp.ACTION_DATA_UPDATED";
-    private List<Object> mData;
     private LayoutInflater inflater;
     final private Context mContext;
-
-    public String DEBUG_TAG;
-    private boolean mUseDetailFragment;
-
-    public void setTwoPane(boolean useDetailFragment) {
-        mUseDetailFragment = useDetailFragment;
-    }
+    public String LOG_TAG;
 
     /** 定义接口*/
-    interface OnItemClick{
+    public static interface OnItemClick{
         void onClick(int position);
     }
     //定义click事件
-    private OnItemClick onItemClick;
+    private OnItemClick onItemClick = null;
 
     /** 对外提供方法，接收示例对象*/
     public void setOnItemClick(OnItemClick onItemClick){
@@ -54,21 +47,21 @@ public class MyRecycleAdapter extends RecyclerViewCursorAdapter<MyRecycleAdapter
     }
 
     /**
-     * default constructor
      * @param ctx
-     * @param mList
+     * @param c
+     * @param flags
      */
-    public MyRecycleAdapter(Context ctx, List<Object> mList) {
+    public MyRecycleAdapter(Context ctx, Cursor c, int flags) {
+        super(ctx, c, flags);
         this.mContext = ctx;
-        this.mData= mList;
-        inflater=LayoutInflater.from(mContext);
-        DEBUG_TAG = ctx.getClass().getName();
+        inflater = LayoutInflater.from(ctx);
+        LOG_TAG = ctx.getClass().getName();
     }
 
     @Override
     public RecipeViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         int layoutID =R.layout.recipe_card;
-        View view = LayoutInflater.from(parent.getContext()).inflate(layoutID, parent, false);
+        View view = inflater.inflate(layoutID, parent, false);
         view.setFocusable(true);
         return new RecipeViewHolder(view);
     }
@@ -76,10 +69,12 @@ public class MyRecycleAdapter extends RecyclerViewCursorAdapter<MyRecycleAdapter
     @Override
     public void onBindViewHolder(final RecipeViewHolder holder, Cursor cursor) {
 
-        JSONObject recipeData = (JSONObject) mData.get(position);
-        String recipeName = RecipeJsonData.getRecipeName(recipeData);
+
+        String recipeName = cursor.getString(FragmentRecipeMain.COL_CAKES_NAME);
         holder.tv_name.setText(recipeName);
-        String imageUrl = RecipeJsonData.getRecipeImageUrl(recipeData);
+        String recipeIngredients = cursor.getString(FragmentRecipeMain.COL_CAKES_INGRE);
+        holder.tv_ingredients.setText(recipeIngredients);
+        String imageUrl = cursor.getString(FragmentRecipeMain.COL_CAKES_IMG);
 
         //获取图片资源
         InputStream is = null;
@@ -93,7 +88,7 @@ public class MyRecycleAdapter extends RecyclerViewCursorAdapter<MyRecycleAdapter
                 bitmap = BitmapFactory.decodeStream(is);
                 is.close();
             } catch (IOException e) {
-                Log.e(DEBUG_TAG, "获取本地图片失败！"+ "\n" + e.getMessage());
+                Log.e(LOG_TAG, "获取本地图片失败！"+ "\n" + e.getMessage());
             }
         }
         else { //加载网络图片
@@ -105,9 +100,9 @@ public class MyRecycleAdapter extends RecyclerViewCursorAdapter<MyRecycleAdapter
                 bitmap = BitmapFactory.decodeStream(is);
                 is.close();
             } catch (MalformedURLException e) {
-                Log.e(DEBUG_TAG,"网络URL不正确！"+"\n" + e.getMessage());
+                Log.e(LOG_TAG,"网络URL不正确！"+"\n" + e.getMessage());
             } catch (IOException e) {
-                Log.e(DEBUG_TAG, "加载网络图片错误！" +"\n" + e.getMessage());
+                Log.e(LOG_TAG, "加载网络图片错误！" +"\n" + e.getMessage());
             }
         }
 
@@ -123,36 +118,16 @@ public class MyRecycleAdapter extends RecyclerViewCursorAdapter<MyRecycleAdapter
         }
     }
 
-
     @Override
-    public int getItemCount() {
-        return mData==null? 0 :mData.size();
-    }
-
-    @Override
-    protected void onContentChanged() {
-
-    }
-
-    public Object getItem(int position){
-        return mData.get(position);
-    }
-
-
-    public void addItem(Object o, int position){
-        this.mData.add(o);
-        notifyDataSetChanged();
-        notifyItemChanged(position);
-    }
+    protected void onContentChanged() {}
 
     /**
      * Cache of the children views for a forecast list item.
      */
     public class RecipeViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         final TextView tv_name;
-        //final TextView tv_desc;
         final ImageView iv;
-        //final TextView tv_desc; 将这部分移到detail view
+        final TextView tv_ingredients;
         /**
          * Constructor
          * @param view
@@ -160,8 +135,8 @@ public class MyRecycleAdapter extends RecyclerViewCursorAdapter<MyRecycleAdapter
         public RecipeViewHolder(View view) {
             super(view);
             tv_name = (TextView) view.findViewById(R.id.recipe_name);
-            //tv_desc=(TextView) view.findViewById(R.id.text_short_desc);
             iv=(ImageView) view.findViewById(R.id.picture);
+            tv_ingredients = (TextView)view.findViewById(R.id.recipe_ingredients);
             view.setOnClickListener(this);
         }
 

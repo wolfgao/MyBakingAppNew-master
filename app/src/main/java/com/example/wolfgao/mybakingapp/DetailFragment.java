@@ -1,20 +1,23 @@
 package com.example.wolfgao.mybakingapp;
 
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.OrientationHelper;
 import android.support.v7.widget.RecyclerView;
-import android.text.method.ScrollingMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.example.wolfgao.mybakingapp.data.MyBakingContract;
+import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,30 +26,54 @@ import java.util.List;
  * Created by gaochuang on 2017/11/7.
  */
 
-public class DetailFragment extends Fragment {
+public class DetailFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>{
 
     private RecyclerView mDetailRecycleView;
     private List<String> mList = new ArrayList<String>();
     private String mRecipe_detail = null;
     private DetailRecyclerAdapter mDetailRecyclerAdapter;
     static final String DETAIL_URI = "recipe_detail";
-    private final String RECIPE_NAME = "name";
-    private final String RECIPE_INGRE = "ingredients";
 
     private String mRecipeName=null;
-    private String mRecipeIngre = null;
-    private String mRecipe_step = null;
-    private TextView tv_ingredients;
-    private JSONArray mJsonArraySteps;
-
+    private Uri mUri;
 
     private String DEBUG_TAG;
 
     private ViewGroup.LayoutParams mLayoutParams;
 
+    private static final int DETAIL_LOADER = 0;
+
+    private static final String[] DETAIL_COLUMNS = {
+            MyBakingContract.StepsEntry.TABLE_NAME + "." + MyBakingContract.StepsEntry._ID,
+            MyBakingContract.StepsEntry.COLUMN_CAKE_KEY,
+            MyBakingContract.StepsEntry.COLUMN_STEP_NO,
+            MyBakingContract.StepsEntry.COLUMN_STEP_SHORT,
+            MyBakingContract.StepsEntry.COLUMN_STEP_DESC,
+            MyBakingContract.StepsEntry.COLUMN_STEP_VIDEO
+            // This works because the WeatherProvider returns location data joined with
+            // weather data, even though they're stored in two different tables.
+
+    };
+
+    // These indices are tied to DETAIL_COLUMNS.  If DETAIL_COLUMNS changes, these
+    // must change.
+    public static final int COL_STEPS_ID = 0;
+    public static final int COL_STEPS_CAKEID = 1; //new added
+    public static final int COL_STEPS_NO = 2;
+    public static final int COL_STEPS_SHORT = 3;
+    public static final int COL_STEPS_DESC = 4;
+    public static final int COL_STEPS_VIDEO = 5;
+
+
+
+    private TextView mStepShort;
+    private TextView mStepDesc;
+    private SimpleExoPlayerView simpleExoPlayerView;
+
     //Constructor
     public DetailFragment(){
         super();
+        setHasOptionsMenu(true);
     }
 
     public void onCreate(Bundle savedInstance) {
@@ -58,6 +85,13 @@ public class DetailFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        //从父activity获取Uri
+        //如果是空，说明是大屏，两个fragment，那么detail应该使用第一条记录
+        Bundle arguments = getArguments();
+        if (arguments != null) {
+            mUri = arguments.getParcelable(DetailFragment.DETAIL_URI);
+        }
+
         //Step 1 初始化view
         View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
         mDetailRecycleView = (RecyclerView) rootView.findViewById(R.id.recipe_detail_recyclerview);
@@ -66,17 +100,8 @@ public class DetailFragment extends Fragment {
         mDetailRecycleView.setLayoutManager(layoutManager);
         layoutManager.setOrientation(OrientationHelper.VERTICAL);
 
-        //初始化材料view
-        tv_ingredients = (TextView)rootView.findViewById(R.id.recipe_ingre);
-        tv_ingredients.setMovementMethod(ScrollingMovementMethod.getInstance());
-
-        Bundle bundle = getArguments();
-        if(bundle !=null) {
-            mRecipe_detail = bundle.getString("recipe_detail");
-            initDetailData();
-        }
         //Step 2 设置adaptor
-        mDetailRecyclerAdapter = new DetailRecyclerAdapter(getContext(), mList);
+        mDetailRecyclerAdapter = new DetailRecyclerAdapter(getContext(), null,0);
         mDetailRecycleView.setAdapter(mDetailRecyclerAdapter);
 
         //增加分割线step 3#
@@ -87,37 +112,42 @@ public class DetailFragment extends Fragment {
         return rootView;
     }
 
-
-    private void initDetailData() {
-        if(mRecipe_detail != null){
-            try{
-                JSONObject recipe_data = new JSONObject(mRecipe_detail);
-                mRecipeName = recipe_data.getString(RECIPE_NAME);
-                mRecipeIngre = RecipeJsonData.getRecipeDesc(recipe_data);
-                mJsonArraySteps = recipe_data.getJSONArray("steps");
-                mRecipe_step = mJsonArraySteps.toString();
-                int nSize = mJsonArraySteps.length();
-                for (int i = 0; i < nSize; i++) {
-                    mList.add(mJsonArraySteps.getString(i));
-                }
-
-            }catch (JSONException e){
-
-            }finally {
-
-            }
-            this.getActivity().setTitle(mRecipeName);
-            tv_ingredients.setText(mRecipeIngre);
-        }
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        getLoaderManager().initLoader(DETAIL_LOADER, null, this);
+        super.onActivityCreated(savedInstanceState);
     }
 
-    //当横屏的时候进行初始化
-    public void setDetailData(String s) {
-        mRecipe_detail =s;
-        initDetailData();
-        if(mDetailRecyclerAdapter != null){
-            mDetailRecyclerAdapter.notifyDataSetChanged();
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        if(null != mUri){
+            // Now create and return a CursorLoader that will take care of
+            // creating a Cursor for the data being displayed.
+            return new CursorLoader(
+                    getActivity(),
+                    mUri,
+                    DETAIL_COLUMNS,
+                    null,
+                    null,
+                    null
+            );
         }
+        /**
+        ViewParent vp = getView().getParent();
+        if (vp instanceof CardView){
+            ((View)vp).setVisibility(View.INVISIBLE);
+        }
+        */
+        return null;
     }
 
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        mDetailRecyclerAdapter.swapCursor(data);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        mDetailRecyclerAdapter.swapCursor(null);
+    }
 }

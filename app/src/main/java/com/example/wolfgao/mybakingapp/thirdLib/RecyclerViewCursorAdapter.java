@@ -8,7 +8,7 @@ import android.support.v7.widget.RecyclerView;
 import android.widget.FilterQueryProvider;
 import android.widget.Filterable;
 import android.widget.Filter;
-
+import android.os.Handler;
 /**
  * Created by gaochuang on 2017/12/28.
  */

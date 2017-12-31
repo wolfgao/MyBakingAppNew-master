@@ -125,7 +125,7 @@ public class RecipeJsonData {
             for (int i = 0; i < ingNum; i++) {
                 JSONObject recipeIngPart = (JSONObject) recipeIng.get(i);
                 recipeStr += "quantity: " + recipeIngPart.getString("quantity")
-                            +" " + recipeIngPart.getString("measure") + "\n"
+                            +" " + recipeIngPart.getString("measure") + "\t"
                             + "ingredient: " + recipeIngPart.getString("ingredient") + "\n";
             }
         } catch (JSONException e) {

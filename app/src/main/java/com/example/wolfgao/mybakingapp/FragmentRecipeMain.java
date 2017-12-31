@@ -1,6 +1,5 @@
 package com.example.wolfgao.mybakingapp;
 
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
@@ -23,27 +22,22 @@ import android.widget.TextView;
 
 import com.example.wolfgao.mybakingapp.data.MyBakingContract;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * 通过LoaderManager来完成Activity和Fragement之间的异步数据查询和同步：
  * LoaderManager：一个抽像类，关联到一个Activity或Fragment，管理一个或多个装载器的实例。这帮助一个应用管理那些与Activity或Fragment的生命周期相关的长时间运行的的操作。
  * 最常见的方式是与一个CursorLoader一起使用，然而应用是可以随便写它们自己的装载器以加载其它类型的数据。
- 每个activity或fragment只有一个LoaderManager。但是一个LoaderManager可以拥有多个装载器。
-
- LoaderManager.LoaderCallbacks： 一个用于客户端与LoaderManager交互的回调接口。例如，你使用回调方法onCreateLoader()来创建一个新的装载器。
+ * 每个activity或fragment只有一个LoaderManager。但是一个LoaderManager可以拥有多个装载器。
+ * LoaderManager.LoaderCallbacks： 一个用于客户端与LoaderManager交互的回调接口。例如，你使用回调方法onCreateLoader()来创建一个新的装载器。
  * 参见 http://blog.csdn.net/yangdeli888/article/details/7911862
  * Created by gaochuang on 2017/10/27.
  */
 
-public class FragmentRecipeMain extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>, SharedPreferences.OnSharedPreferenceChangeListener{
+public class FragmentRecipeMain extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>,
+        SharedPreferences.OnSharedPreferenceChangeListener{
 
     private RecyclerView mRecycleView;
-    private List<Object> mList = new ArrayList<Object>();
     private MyRecycleAdapter mRecycleAdapter;
     private TextView mEmpty_View;
-    private boolean mUseDetailFragment;
     private int mPosition = ListView.INVALID_POSITION;
 
     //用于反转或者resume时刻存取数据的标识
@@ -57,7 +51,8 @@ public class FragmentRecipeMain extends Fragment implements LoaderManager.Loader
             MyBakingContract.CakesEntry.TABLE_NAME + "." + MyBakingContract.CakesEntry._ID,
             MyBakingContract.CakesEntry.COLUMN_CAK_KEY,
             MyBakingContract.CakesEntry.COLUMN_CAK_NAME,
-            MyBakingContract.CakesEntry.COLUMN_CAK_IMG
+            MyBakingContract.CakesEntry.COLUMN_CAK_IMG,
+            MyBakingContract.CakesEntry.COLUMN_CAK_INGRE
     };
 
     //There indices are tied to RECIPE_COLUMNS, if RECIPE_COLUMNS changes, these must be changed
@@ -65,36 +60,14 @@ public class FragmentRecipeMain extends Fragment implements LoaderManager.Loader
     static final int COL_CAKES_KEY = 1;
     static final int COL_CAKES_NAME = 2;
     static final int COL_CAKES_IMG = 3;
+    static final int COL_CAKES_INGRE = 4;
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-
+        if ( key.equals(getString(R.string.pref_server_status_key)) ) {
+            updateEmptyView();
+        }
     }
-
-    @Override
-    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        //This is called when a new load to be created.
-        //To only show Cakes name and Cakes Ingredients, so filter the query to return Recipes for all
-        Uri recipeForAllShowed = MyBakingContract.CakesEntry.CONTENT_URI;
-        return new CursorLoader(getActivity(),
-            recipeForAllShowed,
-            RECIPE_COLUMNS,
-                null,
-                null,
-                null
-        );
-    }
-
-    @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-
-    }
-
-    @Override
-    public void onLoaderReset(Loader<Cursor> loader) {
-
-    }
-
 
     /**
      * A callback interface that all activities containing this fragment must
@@ -102,11 +75,12 @@ public class FragmentRecipeMain extends Fragment implements LoaderManager.Loader
      * selections.
      */
     public interface Callback {
+        //DetailFragmentCallback for when an item has been selected.
+        public void onItemSelected( Uri idUri);
     }
+    //Default constructor
+    public FragmentRecipeMain() { super(); }
 
-    public FragmentRecipeMain() {
-        super();
-    }
     public void onCreate(Bundle savedInstance) {
         super.onCreate(savedInstance);
         setHasOptionsMenu(true);
@@ -124,6 +98,70 @@ public class FragmentRecipeMain extends Fragment implements LoaderManager.Loader
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
         sp.unregisterOnSharedPreferenceChangeListener(this);
         super.onPause();
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        getLoaderManager().initLoader(RECIPE_LOADER, null, this);
+        super.onActivityCreated(savedInstanceState);
+    }
+    /**
+     * 下面三个函数是Loader的必要函数，实现了leader初始化，加载完成，重设
+     * @param id
+     * @param args
+     * @return Loader
+     */
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        //This is called when a new load to be created.
+        //To only show Cakes name and Cakes Ingredients, so filter the query to return Recipes for all
+        Uri recipeForAllShowed = MyBakingContract.CakesEntry.CONTENT_URI;
+        return new CursorLoader(getActivity(),
+            recipeForAllShowed,
+            RECIPE_COLUMNS,
+                null,
+                null,
+                null
+        );
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        mRecycleAdapter.swapCursor(data);
+        updateEmptyView();
+        //为RecyclerView实现Item点击事件有两种，参见：
+        //https://www.jianshu.com/p/2a1ea567d8b9
+        mRecycleAdapter.setOnItemClick(new MyRecycleAdapter.OnItemClick(){
+            Cursor c = mRecycleAdapter.getCursor();
+            @Override
+            public void onClick(int position) {
+                if (c != null) {
+                    c.moveToPosition(position);
+                    String cakeKey = c.getString(FragmentRecipeMain.COL_CAKES_KEY);
+                    String cakeName = c.getString(FragmentRecipeMain.COL_CAKES_NAME);
+                    ((Callback) getActivity())
+                            .onItemSelected(MyBakingContract.StepsEntry.buildCakeKeyUri(cakeKey));
+
+                    mPosition = position;
+                }
+            }
+        });
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        mRecycleAdapter.swapCursor(null);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        // When tablets rotate, the currently selected list item needs to be saved.
+        // When no item is selected, mPosition will be set to Listview.INVALID_POSITION,
+        // so check for that before storing.
+        if (mPosition != ListView.INVALID_POSITION) {
+            outState.putInt(SELECTED_KEY, mPosition);
+        }
+        super.onSaveInstanceState(outState);
     }
 
     /**
@@ -144,22 +182,8 @@ public class FragmentRecipeMain extends Fragment implements LoaderManager.Loader
         layoutManager.setOrientation(OrientationHelper.VERTICAL);
 
         //设置Adaptor部分， step 2#
-        mRecycleAdapter = new MyRecycleAdapter(getContext(), mList);
+        mRecycleAdapter = new MyRecycleAdapter(getContext(), null,0);
         mRecycleView.setAdapter(mRecycleAdapter);
-
-        mRecycleAdapter.setOnItemClick(new MyRecycleAdapter.OnItemClick(){
-
-            Intent intent = new Intent(getActivity().getApplicationContext(), DetailActivity.class );
-            @Override
-            public void onClick(int position) {
-                if(mRecycleAdapter.getItemCount() != 0){
-                    intent.putExtra("recipe_detail", mRecycleAdapter.getItem(position).toString());
-                }
-                //启动DetailActivity
-                startActivity(intent);
-                mPosition = position;
-            }
-        });
 
         //增加分割线step 3#
         mRecycleView.addItemDecoration(new android.support.v7.widget.DividerItemDecoration(getContext(),OrientationHelper.VERTICAL));
@@ -174,29 +198,9 @@ public class FragmentRecipeMain extends Fragment implements LoaderManager.Loader
         if (savedInstanceState != null && savedInstanceState.containsKey(SELECTED_KEY)) {
             mPosition = savedInstanceState.getInt(SELECTED_KEY);
         }
-
-        //如果是横屏启动，默认加载第一个元素
-        if(mUseDetailFragment){
-            // In two-pane mode, show the detail view in this activity by adding or replacing the detail
-            // fragment using a fragment transaction.
-            if (savedInstanceState == null) {
-                DetailFragment detailFragment = (DetailFragment)getActivity().getSupportFragmentManager()
-                        .findFragmentById(R.id.recipe_detail_container);
-                detailFragment.setDetailData(mRecycleAdapter.getItem(0).toString());
-            }
-        }
-
-        mRecycleAdapter.setTwoPane(mUseDetailFragment);
-
         return rootView;
     }
 
-    public void setTwoPane(boolean useDetailFragment) {
-        mUseDetailFragment = useDetailFragment;
-        if ( mRecycleAdapter!= null) {
-            mRecycleAdapter.setTwoPane(mUseDetailFragment);
-        }
-    }
     /**
      *
      */
@@ -238,16 +242,5 @@ public class FragmentRecipeMain extends Fragment implements LoaderManager.Loader
         else{
             mEmpty_View.setVisibility(View.GONE);
         }
-    }
-
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        // When tablets rotate, the currently selected list item needs to be saved.
-        // When no item is selected, mPosition will be set to Listview.INVALID_POSITION,
-        // so check for that before storing.
-        if (mPosition != ListView.INVALID_POSITION) {
-            outState.putInt(SELECTED_KEY, mPosition);
-        }
-        super.onSaveInstanceState(outState);
     }
 }

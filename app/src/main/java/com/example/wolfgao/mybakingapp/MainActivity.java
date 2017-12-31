@@ -1,5 +1,7 @@
 package com.example.wolfgao.mybakingapp;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
@@ -32,16 +34,9 @@ public class MainActivity extends AppCompatActivity implements FragmentRecipeMai
             mTwoPane = false;
             getSupportActionBar().setElevation(0f);
         }
-        /**
-        if (savedInstanceState == null) {
-            getSupportFragmentManager().beginTransaction()
-                    .add(R.id.fragment_recipe_main, new FragmentRecipeMain())
-                    .commit();
-        }
-        */
+
         FragmentRecipeMain fragmentRecipeMain = (FragmentRecipeMain) getSupportFragmentManager()
                 .findFragmentById(R.id.fragment_recipe_main);
-        fragmentRecipeMain.setTwoPane(mTwoPane);
 
         MyBakingSyncAdaptor.initializeSyncAdapter(this);
 
@@ -73,4 +68,24 @@ public class MainActivity extends AppCompatActivity implements FragmentRecipeMai
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    public void onItemSelected(Uri contentUri) {
+        if(mTwoPane){
+            // In two-pane mode, show the detail view in this activity by
+            // adding or replacing the detail fragment using fragment transaction.
+            Bundle args = new Bundle();
+            args.putParcelable(DetailFragment.DETAIL_URI, contentUri);
+
+            DetailFragment fragment = new DetailFragment();
+            fragment.setArguments(args);
+
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.recipe_detail_container, fragment, DETAILFRAGMENT_TAG)
+                    .commit();
+        } else {
+            Intent intent = new Intent(this, DetailActivity.class)
+                    .setData(contentUri);
+            startActivity(intent);
+        }
+    }
 }

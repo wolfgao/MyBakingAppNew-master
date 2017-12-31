@@ -9,7 +9,7 @@
         <!-- 这里添加 divider item -->
         <item name="android:listDivider">@drawable/divider</item>
         <!-- 这里添加字体颜色-->
-        <item name="android:textColor">@color/bluePrimary</item>
+        <item name="android:textColor">@color/textWhite</item>
     </style>
 
 </resources>

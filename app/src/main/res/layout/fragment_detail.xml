@@ -5,24 +5,10 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <TextView
-        android:id="@+id/recipe_ingre"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="@dimen/list_item_extra_padding"
-        android:layout_marginTop="@dimen/list_item_extra_padding"
-        android:background="@color/colorPrimary"
-        android:gravity="fill_vertical"
-        android:maxLines="5"
-        android:padding="5dp"
-        android:scrollbars="vertical"
-        android:textColor="@android:color/white"
-        android:textSize="14sp" />
-
     <include
         layout="@layout/recipe_detail"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:layout_weight="1" />
 
 </LinearLayout>

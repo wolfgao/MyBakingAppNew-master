@@ -37,11 +37,12 @@ public class MyBakingWidgetIntentService extends IntentService {
                 MyBakingWidget.class));
 
         //Get names from the ContentProvider
-        Uri idUri = MyBakingContract.CakesEntry.buildNamesUri("1");
-        Cursor data = getContentResolver().query(idUri,BAKING_COLUMNS,null,null, MyBakingContract.CakesEntry.COLUMN_CAK_KEY + " ASC");
+        Uri contentUri = MyBakingContract.CakesEntry.CONTENT_URI;
+        Cursor data = getContentResolver().query(contentUri,BAKING_COLUMNS,null,null, null);
         if (data == null){
             return;
         }
+        //移到第一行
         if (!data.moveToFirst()) {
             data.close();
             return;

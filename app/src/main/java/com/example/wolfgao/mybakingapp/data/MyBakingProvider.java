@@ -20,10 +20,9 @@ public class MyBakingProvider extends ContentProvider {
     private static final UriMatcher sUriMatcher = buildUriMatcher();
     // Define some code to match URI
     static final int CAKES = 200;
-    static final int CAKE_WITH_NAME = 201;
-    static final int CAKE_WITH_ID = 202;
+    static final int CAKE_WITH_KEY = 202;
     static final int STEPS = 300;
-    static final int STEP_WITH_ID =301;
+    static final int STEPS_WITH_CAKEID = 302;
 
     private MyBakingDBHelper mOpenHelper;
 
@@ -33,38 +32,57 @@ public class MyBakingProvider extends ContentProvider {
     private static final SQLiteQueryBuilder sBakingStepsbyIdBuilder;
     static {
         sBakingStepsbyIdBuilder = new SQLiteQueryBuilder();
-        //This is like "cakes INNER JOIN on cakes.cake_name = steps.cake_name"
+        // 在表中存在至少一个匹配时，INNER JOIN 关键字返回行。
+        // SELECT column_name(s) FROM table_name1 INNER JOIN table_name2 ON table_name1.column_name=table_name2.column_name
         sBakingStepsbyIdBuilder.setTables(
-                MyBakingContract.StepsEntry.TABLE_NAME + " INNER JOIN " +
-                        "ON " + MyBakingContract.StepsEntry.TABLE_NAME +
-                        "." + MyBakingContract.StepsEntry.COLUMN_CAKE_NAME +
+                MyBakingContract.StepsEntry.TABLE_NAME
+                        + " INNER JOIN "
+                        + MyBakingContract.CakesEntry.TABLE_NAME +
+                        " ON " + MyBakingContract.StepsEntry.TABLE_NAME +
+                "." + MyBakingContract.StepsEntry.COLUMN_CAKE_KEY +
                         " = " + MyBakingContract.CakesEntry.TABLE_NAME +
-                        "." + MyBakingContract.CakesEntry.COLUMN_CAK_NAME);
+                        "." + MyBakingContract.CakesEntry.COLUMN_CAK_KEY);
     }
 
     //Define the query string with conditions.
-    private static final String sCakesNameSelection = MyBakingContract.CakesEntry.TABLE_NAME +
-            "." + MyBakingContract.CakesEntry.COLUMN_CAK_NAME + " = ? ";
-
     private static final String sCakesIdSelection = MyBakingContract.CakesEntry.TABLE_NAME +
             "." + MyBakingContract.CakesEntry.COLUMN_CAK_KEY + " = ? ";
 
-    public static final String sStepIdSelection = MyBakingContract.StepsEntry.TABLE_NAME +
-            "." + MyBakingContract.StepsEntry.COLUMN_CAKE_NAME + " = ? ";
+    public static final String sStepsCakeIdSelection = MyBakingContract.StepsEntry.TABLE_NAME +
+            "." + MyBakingContract.StepsEntry.COLUMN_CAKE_KEY + " = ? ";
 
     private static UriMatcher buildUriMatcher() {
         //Add all Path to the UriMatcher, then return a code when a match is found.
         //The code passed into the constructor represents the code to return for the root URI.
-        // We can start with NO_MATCH, then using addURI method
+        // 下面是官方文档
+        /**
+         private static final UriMatcher sURIMatcher = new UriMatcher();
+         static
+         {
+         sURIMatcher.addURI("contacts", "/people", PEOPLE);
+         sURIMatcher.addURI("contacts", "/people/#", PEOPLE_ID);
+         sURIMatcher.addURI("contacts", "/people/#/phones", PEOPLE_PHONES);
+         sURIMatcher.addURI("contacts", "/people/#/phones/#", PEOPLE_PHONES_ID);
+         sURIMatcher.addURI("contacts", "/people/#/contact_methods", PEOPLE_CONTACTMETHODS);
+         sURIMatcher.addURI("contacts", "/people/#/contact_methods/#", PEOPLE_CONTACTMETHODS_ID);
+         sURIMatcher.addURI("contacts", "/deleted_people", DELETED_PEOPLE);
+         sURIMatcher.addURI("contacts", "/phones", PHONES);
+         sURIMatcher.addURI("contacts", "/phones/filter/*", PHONES_FILTER);
+         sURIMatcher.addURI("contacts", "/phones/#", PHONES_ID);
+         sURIMatcher.addURI("contacts", "/contact_methods", CONTACTMETHODS);
+         sURIMatcher.addURI("contacts", "/contact_methods/#", CONTACTMETHODS_ID);
+         sURIMatcher.addURI("call_log", "/calls", CALLS);
+         sURIMatcher.addURI("call_log", "/calls/filter/*", CALLS_FILTER);
+         sURIMatcher.addURI("call_log", "/calls/#", CALLS_ID);
+         }
+         */
         final UriMatcher matcher = new UriMatcher(UriMatcher.NO_MATCH);
         final String authority = MyBakingContract.CONTENT_AUTHORITY;
 
         matcher.addURI(authority,MyBakingContract.PATH_CAKES, CAKES);
         matcher.addURI(authority,MyBakingContract.PATH_STEPS, STEPS);
-        matcher.addURI(authority,MyBakingContract.PATH_CAKES + "/*",CAKE_WITH_NAME);
-        matcher.addURI(authority,MyBakingContract.PATH_CAKES + "/*",CAKE_WITH_ID);
-        matcher.addURI(authority, MyBakingContract.PATH_STEPS + "/*/#", STEP_WITH_ID);
-
+        matcher.addURI(authority,MyBakingContract.PATH_CAKES + "/#",CAKE_WITH_KEY);
+        matcher.addURI(authority,MyBakingContract.PATH_STEPS + "/*", STEPS_WITH_CAKEID);
         return matcher;
     }
 
@@ -81,10 +99,7 @@ public class MyBakingProvider extends ContentProvider {
         // and query the database accordingly.
         Cursor retCursor = null;
         switch (sUriMatcher.match(uri)){
-            case CAKE_WITH_NAME:
-                retCursor = getCakeByName(uri, projection, sortOrder);
-                break;
-            case CAKE_WITH_ID:
+            case CAKE_WITH_KEY:
                 retCursor = getCakeById(uri, projection, sortOrder);
                 break;
             case CAKES:
@@ -111,8 +126,8 @@ public class MyBakingProvider extends ContentProvider {
                         sortOrder
                 );
                 break;
-            case STEP_WITH_ID:
-                retCursor = getStepsById(uri, projection, sortOrder);
+            case STEPS_WITH_CAKEID:
+                retCursor = getStepsByCakeID(uri, projection, sortOrder);
                 break;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
@@ -123,7 +138,7 @@ public class MyBakingProvider extends ContentProvider {
     }
 
     private Cursor getCakeById(Uri uri, String[] projection, String sortOrder) {
-        String id = MyBakingContract.CakesEntry.getIdFromUri(uri);
+        String id = MyBakingContract.CakesEntry.getCakeIdFromUri(uri);
         return new SQLiteQueryBuilder().query(mOpenHelper.getReadableDatabase(),
                 projection,
                 sCakesIdSelection,
@@ -133,24 +148,26 @@ public class MyBakingProvider extends ContentProvider {
                 sortOrder);
     }
 
-    private Cursor getCakeByName(Uri uri, String[] projection, String sortOrder) {
-        String name = MyBakingContract.CakesEntry.getNameFromUri(uri);
-        return new SQLiteQueryBuilder().query(mOpenHelper.getReadableDatabase(),
+    /**
+    private Cursor getStepsByNo(Uri uri, String[] projection, String sortOrder) {
+        String step_no = MyBakingContract.StepsEntry.getCakeKeyFromUri(uri);
+        //因为steps的stepid实际上是cakes的cake name
+        return sBakingStepsbyIdBuilder.query(mOpenHelper.getReadableDatabase(),
                 projection,
-                sCakesNameSelection,
-                new String[]{name},
+                sStepNoSelection,
+                new String[]{step_no},
                 null,
                 null,
                 sortOrder);
     }
-
-    private Cursor getStepsById(Uri uri, String[] projection, String sortOrder) {
-        String step_id = MyBakingContract.StepsEntry.getIdFromUri(uri);
-        //因为steps的stepid实际上是cakes的cake name
+    */
+    private Cursor getStepsByCakeID(Uri uri, String[] projection, String sortOrder) {
+        String cake_key = MyBakingContract.StepsEntry.getCakeKeyFromUri(uri);
+        //因为steps的stepid实际上是cakes的cake key
         return sBakingStepsbyIdBuilder.query(mOpenHelper.getReadableDatabase(),
                 projection,
-                sStepIdSelection,
-                new String[]{step_id},
+                sStepsCakeIdSelection,
+                new String[]{cake_key},
                 null,
                 null,
                 sortOrder);
@@ -163,17 +180,14 @@ public class MyBakingProvider extends ContentProvider {
         final int match = sUriMatcher.match(uri);
 
         switch (match){
-            case CAKE_WITH_ID:
-                return MyBakingContract.CakesEntry.CONTENT_ITEM_TYPE;
-            case CAKE_WITH_NAME:
+            case CAKE_WITH_KEY:
                 return MyBakingContract.CakesEntry.CONTENT_ITEM_TYPE;
             case CAKES:
                 return MyBakingContract.CakesEntry.CONTENT_TYPE;
-            case STEP_WITH_ID:
-                return MyBakingContract.StepsEntry.CONTENT_ITEM_TYPE;
+            case STEPS_WITH_CAKEID:
+                return MyBakingContract.StepsEntry.CONTENT_TYPE;
             case STEPS:
                 return MyBakingContract.StepsEntry.CONTENT_TYPE;
-
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
@@ -189,7 +203,7 @@ public class MyBakingProvider extends ContentProvider {
             case CAKES: {
                 long _id = db.insert(MyBakingContract.CakesEntry.TABLE_NAME, null, values);
                 if ( _id > 0 )
-                    returnUri = MyBakingContract.CakesEntry.buildCakesUri(_id);
+                    returnUri = MyBakingContract.CakesEntry.buildIdUrl(_id);
                 else
                     throw new android.database.SQLException("Failed to insert row into " + uri);
                 break;

@@ -68,6 +68,8 @@
 
     <!-- Strings related to Notification Enabled preference -->
     <string name="pref_last_notification">last_notification</string>
+    <string name="textview">Recipe Name</string>
+    <string name="widget_recipe_id">Recipe ID</string>
 
 
 </resources>

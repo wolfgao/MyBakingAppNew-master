@@ -45,8 +45,8 @@ public class MyBakingSyncAdaptor extends AbstractThreadedSyncAdapter {
     // 60 seconds (1 minute) * 180 = 3 hours
     public static final int SYNC_INTERVAL = 60 * 180;   //per 3 hours
     public static final int SYNC_FLEXTIME = SYNC_INTERVAL/3;  //once an hour
-    private static final long DAY_IN_MILLIS = 1000 * 60 * 60 * 24; //1000 days
-    private static final String DEBUG_TAG = "MyBakingSyncAdaptor";
+    //private static final long DAY_IN_MILLIS = 1000 * 60 * 60 * 24; //1000 days
+    private static String DEBUG_TAG;
     private String mRecipeJson;
     private Context mContext;
 
@@ -64,7 +64,6 @@ public class MyBakingSyncAdaptor extends AbstractThreadedSyncAdapter {
 
     private final static String RECIPEID = "id";
     private final static String RECIPENAME = "name";
-    private final static String RECIPEINGREDIENTS = "ingredients";
     private final static String RECIPESTEPS = "steps";
     private final static String RECIPEIMAGE = "image";
     public static final String STEP_ID = "id";
@@ -79,6 +78,7 @@ public class MyBakingSyncAdaptor extends AbstractThreadedSyncAdapter {
     public MyBakingSyncAdaptor(Context context, boolean autoInitialize) {
         super(context, autoInitialize);
         mContext = context;
+        DEBUG_TAG = mContext.getPackageName();
     }
 
     /**
@@ -274,7 +274,7 @@ public class MyBakingSyncAdaptor extends AbstractThreadedSyncAdapter {
      */
 
     private void getRecipeInfoFromJason(String jsonStr){
-        String id;
+        String cakeId;
         String cakeName;
         String image;
         String ingredients;
@@ -289,19 +289,20 @@ public class MyBakingSyncAdaptor extends AbstractThreadedSyncAdapter {
 
             for (int i = 0; i < num; i++) {
                 JSONObject cake = cakeArray.getJSONObject(i);
-                id = cake.getString(RECIPEID);
+                cakeId = cake.getString(RECIPEID);
                 cakeName = cake.getString(RECIPENAME); //using cake name as step id to direct to steps table.
-                ingredients = cake.getString(RECIPEINGREDIENTS);
+                ingredients = RecipeJsonData.getRecipeDesc(cake);
                 image = cake.getString(RECIPEIMAGE);
                 JSONArray stepArray = cake.getJSONArray(RECIPESTEPS);
 
                 ContentValues cakeValues = new ContentValues();
-                cakeValues.put(MyBakingContract.CakesEntry.COLUMN_CAK_KEY, id);
+                cakeValues.put(MyBakingContract.CakesEntry.COLUMN_CAK_KEY, cakeId);
                 cakeValues.put(MyBakingContract.CakesEntry.COLUMN_CAK_NAME, cakeName);
                 cakeValues.put(MyBakingContract.CakesEntry.COLUMN_CAK_INGRE, ingredients);
                 cakeValues.put(MyBakingContract.CakesEntry.COLUMN_CAK_IMG,image);
 
                 cakeVector.add(cakeValues);
+
 
                 int stepNo = stepArray.length();
                 Vector<ContentValues> stepVector = new Vector<ContentValues>(stepNo);
@@ -312,22 +313,20 @@ public class MyBakingSyncAdaptor extends AbstractThreadedSyncAdapter {
                     String step_desc = stepArray.getJSONObject(j).getString(STEP_DESC);
                     String step_video = stepArray.getJSONObject(j).getString(STEP_VIDEO);
                     ContentValues stepValues = new ContentValues();
-                    stepValues.put(MyBakingContract.StepsEntry.COLUMN_CAKE_NAME,cakeName);
+                    stepValues.put(MyBakingContract.StepsEntry.COLUMN_CAKE_KEY,cakeId);
                     stepValues.put(MyBakingContract.StepsEntry.COLUMN_STEP_NO,step_no);
                     stepValues.put(MyBakingContract.StepsEntry.COLUMN_STEP_SHORT,step_short);
                     stepValues.put(MyBakingContract.StepsEntry.COLUMN_STEP_DESC, step_desc);
                     stepValues.put(MyBakingContract.StepsEntry.COLUMN_STEP_VIDEO,step_video);
 
                     stepVector.add(stepValues);
-                    //插入数据库
-                    int inserted = insertDB(stepVector, MyBakingContract.StepsEntry.CONTENT_URI);
-                    Log.i(DEBUG_TAG, "成功插入steps 表 "+inserted+" 条记录！");
                 }
-
-                int inserted = insertDB(cakeVector, MyBakingContract.CakesEntry.CONTENT_URI);
-                Log.i(DEBUG_TAG, "成功插入cakess 表 "+inserted+" 条记录！");
-                updateWidgets();
+                //插入数据库
+                int inserted = insertDB(stepVector, MyBakingContract.StepsEntry.CONTENT_URI);
+                Log.i(DEBUG_TAG, "成功插入steps 表 "+inserted+" 条记录！");
             }
+            int inserted = insertDB(cakeVector, MyBakingContract.CakesEntry.CONTENT_URI);
+            Log.i(DEBUG_TAG, "成功插入cakess 表 "+inserted+" 条记录！");
 
         } catch (JSONException e) {
             e.printStackTrace();
