@@ -76,9 +76,9 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         setHasOptionsMenu(true);
     }
 
-    public void setTitle(String title) {
+    public void setTitle() {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getContext());
-        mTitle = sp.getString(TITLE, getString(R.string.app_name));
+        mTitle = sp.getString(TITLE, getContext().getString(R.string.app_name));
         getActivity().setTitle(mTitle);
     }
 
@@ -86,6 +86,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         super.onCreate(savedInstance);
         setHasOptionsMenu(true);
         DEBUG_TAG = getActivity().getClass().getName();
+        setTitle();
     }
 
     @Override

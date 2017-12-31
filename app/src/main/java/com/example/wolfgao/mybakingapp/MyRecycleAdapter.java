@@ -30,6 +30,7 @@ import java.net.URL;
 public class MyRecycleAdapter extends RecyclerViewCursorAdapter<MyRecycleAdapter.RecipeViewHolder> {
 
     public static final String ACTION_DATA_UPDATED = "com.example.wolfgao.mybakingapp.ACTION_DATA_UPDATED";
+    public static final String APPWIDGET_UPDATE = "android.appwidget.action.APPWIDGET_UPDATE";
     private LayoutInflater inflater;
     final private Context mContext;
     public String LOG_TAG;

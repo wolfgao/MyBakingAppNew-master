@@ -17,6 +17,7 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
+import com.example.wolfgao.mybakingapp.MainActivity;
 import com.example.wolfgao.mybakingapp.R;
 import com.example.wolfgao.mybakingapp.RecipeJsonData;
 import com.example.wolfgao.mybakingapp.Utility;
@@ -346,11 +347,12 @@ public class MyBakingSyncAdaptor extends AbstractThreadedSyncAdapter {
     }
 
     private void updateWidgets() {
-        Context context = getContext();
+
         // Setting the package ensures that only components in our app will receive the broadcast
-        Intent dataUpdatedIntent = new Intent(ACTION_DATA_UPDATED)
-                .setPackage(context.getPackageName());
-        context.sendBroadcast(dataUpdatedIntent);
+        Intent dataUpdatedIntent = new Intent(mContext, MainActivity.class);
+        dataUpdatedIntent.setPackage(mContext.getPackageName());
+        dataUpdatedIntent.setAction("android.appwidget.action.APPWIDGET_UPDATE");
+        mContext.sendBroadcast(dataUpdatedIntent);
     }
 
     private void notifyWeather(){

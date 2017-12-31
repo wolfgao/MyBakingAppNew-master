@@ -73,6 +73,7 @@ public class FragmentRecipeMain extends Fragment implements LoaderManager.Loader
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getContext());
         SharedPreferences.Editor spe = sp.edit();
         spe.putString(DetailFragment.TITLE, cakeName);
+        spe.commit();
     }
 
     /**

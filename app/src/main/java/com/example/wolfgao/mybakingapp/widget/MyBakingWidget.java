@@ -47,7 +47,7 @@ public class MyBakingWidget extends AppWidgetProvider {
 
     public void onReceive(@NonNull Context context, @NonNull Intent intent){
         super.onReceive(context, intent);
-        if(MyRecycleAdapter.ACTION_DATA_UPDATED.equals(intent.getAction())){
+        if(MyRecycleAdapter.APPWIDGET_UPDATE.equals(intent.getAction())){
             context.startService(new Intent(context, MyBakingWidgetIntentService.class));
         }
     }

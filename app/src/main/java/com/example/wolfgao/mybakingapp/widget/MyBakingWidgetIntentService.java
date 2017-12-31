@@ -31,10 +31,14 @@ public class MyBakingWidgetIntentService extends IntentService {
     public MyBakingWidgetIntentService(){ super( "MyBakingWidgetIntentService");}
 
     protected void onHandleIntent(@NonNull Intent intent){
-        // Retrieve all names info to to update
+        // Retrieve all of the MyBaking widget ids: these are the widgets we need to update
+        // But实际上，我经常返回一个空的appWidgetID列表，因此搜了一下，解决办法如下：
+        // https://stackoverflow.com/questions/20273543/appwidgetmanager-getappwidgetids-in-activity-returns-an-empty-list
+
         AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(this);
         int[] appWidgetIds = appWidgetManager.getAppWidgetIds(new ComponentName(this,
                 MyBakingWidget.class));
+
 
         //Get names from the ContentProvider
         Uri contentUri = MyBakingContract.CakesEntry.CONTENT_URI;
@@ -52,22 +56,23 @@ public class MyBakingWidgetIntentService extends IntentService {
         String cakeName = data.getString(INDEX_CAKE_NAME);
         data.close();
 
-        // Perform this loop procedure for MyBaking widget
-        for (int appWidgetId : appWidgetIds){
+        for (int appWidgetId : appWidgetIds) {
             int layoutId = R.layout.my_baking_widget;
             RemoteViews views = new RemoteViews(getPackageName(), layoutId);
-
             // Add data to the remote views one by one
             views.setTextViewText(R.id.widget_cake_id, cakeId);
-            views.setTextViewText(R.id.widget_cake_name,cakeName);
-            // Create an Intent to launch MainActivity
-            Intent launchIntent = new Intent(this, MainActivity.class);
-            PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, launchIntent, 0);
-            views.setOnClickPendingIntent(R.id.widget, pendingIntent);
+            views.setTextViewText(R.id.widget_cake_name, cakeName);
 
             // Tell the AppWidgetManager to perform an update on the current app widget
             appWidgetManager.updateAppWidget(appWidgetId, views);
-        }
 
-    }
+            //appWidgetManager.updateAppWidget(new ComponentName(this.getPackageName(),
+            //        MyBakingWidget.class.getName()), views);
+            // Tell the AppWidgetManager to perform an update on the current app widget
+            // Create an Intent to launch MainActivity
+            Intent launchIntent = new Intent(this, MainActivity.class);
+            PendingIntent pendingIntentMain = PendingIntent.getActivity(this, 0, launchIntent, 0);
+            views.setOnClickPendingIntent(R.id.widget, pendingIntentMain);
+        }
+     }
 }
