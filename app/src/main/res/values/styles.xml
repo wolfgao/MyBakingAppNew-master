@@ -3,13 +3,12 @@
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
         <!-- Customize your theme here. -->
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:textColorPrimary">@color/textBlack</item>
         <!-- 这里添加 divider item -->
         <item name="android:listDivider">@drawable/divider</item>
         <!-- 这里添加字体颜色-->
-        <item name="android:textColor">@color/textWhite</item>
+        <item name="android:textColor">@color/textBlack</item>
     </style>
 
 </resources>

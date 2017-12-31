@@ -1,8 +1,10 @@
 package com.example.wolfgao.mybakingapp;
 
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
@@ -19,23 +21,19 @@ import android.widget.TextView;
 import com.example.wolfgao.mybakingapp.data.MyBakingContract;
 import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Created by gaochuang on 2017/11/7.
  */
 
 public class DetailFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>{
 
+    public static final String TITLE = "cake_name";
     private RecyclerView mDetailRecycleView;
-    private List<String> mList = new ArrayList<String>();
-    private String mRecipe_detail = null;
     private DetailRecyclerAdapter mDetailRecyclerAdapter;
     static final String DETAIL_URI = "recipe_detail";
 
-    private String mRecipeName=null;
     private Uri mUri;
+    private String mTitle;
 
     private String DEBUG_TAG;
 
@@ -49,7 +47,8 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
             MyBakingContract.StepsEntry.COLUMN_STEP_NO,
             MyBakingContract.StepsEntry.COLUMN_STEP_SHORT,
             MyBakingContract.StepsEntry.COLUMN_STEP_DESC,
-            MyBakingContract.StepsEntry.COLUMN_STEP_VIDEO
+            MyBakingContract.StepsEntry.COLUMN_STEP_VIDEO,
+            MyBakingContract.CakesEntry.COLUMN_CAK_NAME
             // This works because the WeatherProvider returns location data joined with
             // weather data, even though they're stored in two different tables.
 
@@ -63,6 +62,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     public static final int COL_STEPS_SHORT = 3;
     public static final int COL_STEPS_DESC = 4;
     public static final int COL_STEPS_VIDEO = 5;
+    public static final int COL_CAKES_NAME = 6;
 
 
 
@@ -74,6 +74,12 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     public DetailFragment(){
         super();
         setHasOptionsMenu(true);
+    }
+
+    public void setTitle(String title) {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getContext());
+        mTitle = sp.getString(TITLE, getString(R.string.app_name));
+        getActivity().setTitle(mTitle);
     }
 
     public void onCreate(Bundle savedInstance) {

@@ -52,13 +52,14 @@ public class MyBakingWidgetIntentService extends IntentService {
         String cakeName = data.getString(INDEX_CAKE_NAME);
         data.close();
 
+        // Perform this loop procedure for MyBaking widget
         for (int appWidgetId : appWidgetIds){
             int layoutId = R.layout.my_baking_widget;
             RemoteViews views = new RemoteViews(getPackageName(), layoutId);
+
             // Add data to the remote views one by one
             views.setTextViewText(R.id.widget_cake_id, cakeId);
             views.setTextViewText(R.id.widget_cake_name,cakeName);
-
             // Create an Intent to launch MainActivity
             Intent launchIntent = new Intent(this, MainActivity.class);
             PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, launchIntent, 0);

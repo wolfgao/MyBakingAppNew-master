@@ -69,6 +69,12 @@ public class FragmentRecipeMain extends Fragment implements LoaderManager.Loader
         }
     }
 
+    public void setDetailFragmentTitle(String cakeName) {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getContext());
+        SharedPreferences.Editor spe = sp.edit();
+        spe.putString(DetailFragment.TITLE, cakeName);
+    }
+
     /**
      * A callback interface that all activities containing this fragment must
      * implement. This mechanism allows activities to be notified of item
@@ -139,9 +145,11 @@ public class FragmentRecipeMain extends Fragment implements LoaderManager.Loader
                     c.moveToPosition(position);
                     String cakeKey = c.getString(FragmentRecipeMain.COL_CAKES_KEY);
                     String cakeName = c.getString(FragmentRecipeMain.COL_CAKES_NAME);
+
                     ((Callback) getActivity())
                             .onItemSelected(MyBakingContract.StepsEntry.buildCakeKeyUri(cakeKey));
 
+                    setDetailFragmentTitle(cakeName);
                     mPosition = position;
                 }
             }
