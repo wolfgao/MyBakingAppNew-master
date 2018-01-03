@@ -10,7 +10,9 @@ import android.test.suitebuilder.annotation.LargeTest;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
+import android.widget.TextView;
 
+import org.hamcrest.BaseMatcher;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -22,9 +24,12 @@ import org.junit.runner.RunWith;
 
 import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.action.ViewActions.click;
+import static android.support.test.espresso.assertion.ViewAssertions.matches;
+import static android.support.test.espresso.matcher.ViewMatchers.hasDescendant;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withParent;
+import static android.support.test.espresso.matcher.ViewMatchers.withText;
 
 /**
  * 关于Espresso的部分，参考了简书 https://www.jianshu.com/p/37f1897df3fd
@@ -57,7 +62,6 @@ import static android.support.test.espresso.matcher.ViewMatchers.withParent;
 
  To interact with RecyclerViews using Espresso, you can use the espresso-contrib package, which has a
  collection of RecyclerViewActions that can be used to scroll to positions or to perform actions on items:
-
  scrollTo() - Scrolls to the matched View.
  scrollToHolder() - Scrolls to the matched View Holder.
  scrollToPosition() - Scrolls to a specific position.
@@ -83,13 +87,20 @@ public class MainActivityTest {
     @Test
     public void recyclerViewTest(){
         //获得RecyclerView
-        ViewInteraction firstItem = onView(withId(R.id.recycler_main_page))
-                .perform(RecyclerViewActions.actionOnItemAtPosition(0, click()));
-
-        ViewInteraction detailView = onView(
-                CoreMatchers.allOf(withId(R.id.recipe_detail_recyclerview),
-                withParent(withId(R.id.recipe_detail_view)),
+        ViewInteraction recyclerView = onView(CoreMatchers.allOf(
+                withId(R.id.recycler_main_page),
+                withParent(withId(R.id.col)),
                 isDisplayed()));
+
+        //测试数据
+        String[] names = {"Nutella Pie","Brownies","Yellow Cake","Cheesecake"};
+
+        for (int i = 0; i < names.length ; i++) {
+            recyclerView.perform(RecyclerViewActions.scrollToPosition(i));
+            onView(withText(names[i]))
+                    .check(matches(isDisplayed()));
+
+        }
 
         // Added a sleep statement to match the app's execution delay.
         // The recommended way to handle such scenarios is to use Espresso idling resources:
@@ -132,10 +143,26 @@ public class MainActivityTest {
         }
     }
 
+    /**
+     * 测一下detailView
+     */
     @Test
     public void detailViewTest(){
-        //获得detailView第一个item，应该是step_short
-        ViewInteraction step_short = onView(withId(R.id.recipe_detail_recyclerview)).
+        onView(withId(R.id.recycler_main_page))
+                .perform(RecyclerViewActions.actionOnItemAtPosition(0, click()));
+
+        ViewInteraction detailView = onView(CoreMatchers.allOf(
+                withId(R.id.recipe_detail_recyclerview),
+                withParent(withId(R.id.recipe_detail_view)),
+                isDisplayed()));
+
+        int steps = 6;
+        for (int i = 0; i < steps; i++) {
+            detailView.perform(RecyclerViewActions.scrollToPosition(i));
+            onView(CoreMatchers.allOf(withId(R.id.step_short_desc),
+                    withStartText(Integer.toString(i)))).check(matches(isDisplayed()));
+        }
+
     }
 
     private static Matcher<View> childAtPosition(
@@ -157,5 +184,28 @@ public class MainActivityTest {
         };
     }
 
+
+    /**
+     * 作者：Mark_Liu
+     链接：https://www.jianshu.com/p/a9b5e3f58232
+     來源：简书
+     著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。
+     * @param startStr
+     * @return
+     */
+    public static Matcher<View> withStartText(final String startStr){
+        return new BaseMatcher<View>() {
+            @Override
+            public boolean matches(Object item) {
+                TextView text = (TextView) item;
+                return text.getText().toString().startsWith(startStr);
+            }
+
+            @Override
+            public void describeTo(Description description) {
+                description.appendText("this is a Matcher as match head of String");
+            }
+        };
+    }
 
 }
