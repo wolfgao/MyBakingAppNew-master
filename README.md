@@ -1,14 +1,14 @@
-
+# 烘培项目- 高级进阶项目
 ## 简单说明： 
-1）这个例子主要的设计模式是list view ->详细页面 ->视频页面；
-2）主要用到的设计类有：RecyclerView, CardView, 这些view都在Fragment里面呈现；
-3）因为要求用ExoPlayer，这个是最近谷歌推荐的非常流行的播放器，我们借鉴了demo的部分，这个player最牛逼的地方主要是两点：第一支持的sample格式齐全，第二可以自适应，根据带宽来调节不同的播放源，这个对现在的移动互联网视频网站简直就是福音，好好搞搞，挺有意思的。
-4）因为要从网络获取数据，必须用到后台进程，目前Android有好几种办法，我们用了谷歌比较推荐的SyncSerice和SyncAdapter，这个和Cursor结合的话，基本满足大部分类似需求；
-5）因为我们必须用Cursor来处理数据库，并且用了ContentProvider和ContentResolver，这部分花了不少精力终于搞明白他们的使用逻辑，的确有一些坑需要每个人去走一下才知道。
-6）对于数据处理，如何建立数据库，数据表，和建立provider这部分有规范文档和实例，学起来比较快。
-7）Widget的部分也是花了一些时间，尤其是获得appWidgetIds列表时发现是空，查找了很多资料搞定，参见下面详文。
-8）用了第三方的一个类：RecyclerViewCursorAdapter，主要原因是作为RecycleView的Adapter不能实现CursorAdapter,后者只能用于ListView，这个给我带来了很多烦扰，后来发现这个第三方类，实际是继承了RecyclerView.Adapter，但是把CursorAdapter的方法都基本抄了一遍，不过这个类也work的很好。
-9）最重要的单元测试，目前方案很多：Espresso, UiAutomator, JUnit4，还有一个新贵Robolectric,不过使用的时候发现这个框架对加载带有sync的应用总是fail，目前还在探索中。
+- 这个例子主要的设计模式是list view ->详细页面 ->视频页面；
+- 主要用到的设计类有：RecyclerView, CardView, 这些view都在Fragment里面呈现；
+- 因为要求用ExoPlayer，这个是最近谷歌推荐的非常流行的播放器，我们借鉴了demo的部分，这个player最牛逼的地方主要是两点：第一支持的sample格式齐全，第二可以自适应，根据带宽来调节不同的播放源，这个对现在的移动互联网视频网站简直就是福音，好好搞搞，挺有意思的。
+- 因为要从网络获取数据，必须用到后台进程，目前Android有好几种办法，我们用了谷歌比较推荐的SyncSerice和SyncAdapter，这个和Cursor结合的话，基本满足大部分类似需求；
+- 因为我们必须用Cursor来处理数据库，并且用了ContentProvider和ContentResolver，这部分花了不少精力终于搞明白他们的使用逻辑，的确有一些坑需要每个人去走一下才知道。
+- 对于数据处理，如何建立数据库，数据表，和建立provider这部分有规范文档和实例，学起来比较快。
+- Widget的部分也是花了一些时间，尤其是获得appWidgetIds列表时发现是空，查找了很多资料搞定，参见下面详文。
+- 用了第三方的一个类：RecyclerViewCursorAdapter，主要原因是作为RecycleView的Adapter不能实现CursorAdapter,后者只能用于ListView，这个给我带来了很多烦扰，后来发现这个第三方类，实际是继承了RecyclerView.Adapter，但是把CursorAdapter的方法都基本抄了一遍，不过这个类也work的很好。
+- 最重要的单元测试，目前方案很多：Espresso, UiAutomator, JUnit4，还有一个新贵Robolectric,不过使用的时候发现这个框架对加载带有sync的应用总是fail，目前还在探索中。
 笔者比较熟悉UiAutomator，这个更多是用来进行larger test的。
 对于UI test，Espresso和
 这里面[谷歌的官方文档](https://developer.android.com/training/testing/index.html)还是很牛的，多看看，再多看看 [Android Testing samples](https://github.com/googlesamples/android-testing).
@@ -135,17 +135,17 @@ public String getTitles(){
 
 ### Loader机制，我们采用了loader来获取数据的变更非常有用。它可以方便我们在Activity和Fragment中异步加载数据，而不是用线程或AsyncTask，他的优点如下：
 #### Loader Manager的有点
-* 提供异步加载数据机制；
-* 对数据源变化进行监听，实时更新数据；
-* 在Activity配置发生变化（如横竖屏切换）时不用重复加载数据；
-* 适用于任何Activity和Fragment；
+- 提供异步加载数据机制；
+- 对数据源变化进行监听，实时更新数据；
+- 在Activity配置发生变化（如横竖屏切换）时不用重复加载数据；
+- 适用于任何Activity和Fragment；
 #### 在应用中使用Loader
 在我们开发的一个App里，使用Loader时常规的步骤包含如下一些操作需求：
-* 一个Activity或Fragment；
-* 一个LoaderManager实例；
-* 一个CursorLoader，从ContentProvider加载数据；
-* 一个LoaderManager.LoaderCallbacks实现，创建新Loader及管理已存在Loader；
-* 一个组织Loader数据的Adapter，如SimpleCursorAdapter；
+- 一个Activity或Fragment；
+- 一个LoaderManager实例；
+- 一个CursorLoader，从ContentProvider加载数据；
+- 一个LoaderManager.LoaderCallbacks实现，创建新Loader及管理已存在Loader；
+- 一个组织Loader数据的Adapter，如SimpleCursorAdapter；
 
 #### 对Uri的理解非常重要：
 projection  要返回的列key list，null表示返回所有列，但是返回所有列很多时候会降低性能
@@ -180,21 +180,47 @@ sortOrder   结果的行排序，也就是SQL中的ORDER BY，传递null则无�
 但是总体来说，这个比较轻，不需要特别的emulator环境，应该符合TDD的要求，长期看值得推荐和发展。
 
 因此最后用了相对比较成熟的Esspreso，这个框架是比较成熟的[UI test框架](https://developer.android.com/training/testing/espresso/index.html)。
-1。 使用ActivityTestRule来创建Espresso测试用例；
- * 2。视图匹配：利用 Espresso.onView() 方法，您可以访问目标应用中的 UI 组件并与之交互。此方法接受 Matcher 参数
- * 并搜索视图层次结构，以找到符合给定条件的相应 View 实例：
- *      视图的类名称；
- *      视图的内容描述；
- *      视图的 R.id
- *      在视图中显示的文本
- * 3. 如何操作：
- * 通常情况下，您可以通过根据应用的用户界面执行某些用户交互来测试应用。借助 ViewActions API，您可以轻松地实现这些操作的自动化。您可以执行多种 UI 交互，例如：
+##### 使用ActivityTestRule来创建Espresso测试用例；
+##### 视图匹配：利用 Espresso.onView() 方法，您可以访问目标应用中的 UI 组件并与之交互。此方法接受 Matcher 参数并搜索视图层次结构，以找到符合给定条件的相应 View 实例：
+    - 视图的类名称；
+    - 视图的内容描述；
+    - 视图的 R.id
+    - 在视图中显示的文本
+##### 如何操作：通常情况下，您可以通过根据应用的用户界面执行某些用户交互来测试应用。借助 ViewActions API，您可以轻松地实现这些操作的自动化。您可以执行多种 UI 交互，例如：
      ViewActions.click(): 点击事件
      ViewActions.typeText(): 输入指定的文字内容
      ViewActions.scrollTo(): 滑动
      ViewActions.pressKey(): 按下按键
      ViewActions.clearText(): 清空文本
- * 4. 其实重要的是如何校验结果？
+##### 其实重要的是如何校验结果？
+#### RecyclerView不能用onData方法，需要用RecyclerViewActions，这需要你在build.app里面加上：
+```
+    androidTestCompile 'com.android.support.test.espresso:espresso-contrib:3.0.1'
+```
+##### 一个最大的坑，你用onView经常会返回来一堆view，都是matched，但是要挑一个真正你要的view，Espresso这方面还需要再继续努力，我这里用了一个哥们的方法，把startsWith重写了，还不错，用在我的项目上很好。
+ ```
+ /**
+     * 作者：Mark_Liu
+     链接：https://www.jianshu.com/p/a9b5e3f58232
+     來源：简书
+     著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。
+     * @param startStr
+     * @return
+     */
+    public static Matcher<View> withStartText(final String startStr){
+        return new BaseMatcher<View>() {
+            @Override
+            public boolean matches(Object item) {
+                TextView text = (TextView) item;
+                return text.getText().toString().startsWith(startStr);
+            }
+
+            @Override
+            public void describeTo(Description description) {
+                description.appendText("this is a Matcher as match head of String");
+            }
+        };
+    }
 
 最后，在Android开发过程中，总会遇到这样那样的问题，要坚定信心，不断看文档和尝试，最终都能搞定，希望大家好运并能继续前进！！！
 
