@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.view.MenuItem;
 
 import com.example.wolfgao.mybakingapp.sync.MyBakingSyncAdaptor;
 
@@ -41,11 +40,13 @@ public class MainActivity extends AppCompatActivity implements FragmentRecipeMai
         MyBakingSyncAdaptor.initializeSyncAdapter(this);
 
         //关于Back的action bar
+        /** 在主界面不需要顶部返回按键，因此删除这部分代码
         android.support.v7.app.ActionBar actionBar = getSupportActionBar();
         if(actionBar != null){
             actionBar.setHomeButtonEnabled(true);
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
+         */
     }
 
     @Override
@@ -58,6 +59,7 @@ public class MainActivity extends AppCompatActivity implements FragmentRecipeMai
         }
     }
 
+    /**在主界面不需要顶部返回按键，因此删除这部分代码
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
@@ -67,6 +69,7 @@ public class MainActivity extends AppCompatActivity implements FragmentRecipeMai
         }
         return super.onOptionsItemSelected(item);
     }
+     */
 
     @Override
     public void onItemSelected(Uri contentUri) {

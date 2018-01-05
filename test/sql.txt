@@ -1,0 +1,10 @@
+SELECT steps._id, step_no, step_short, step_desc, step_video, cake_key FROM steps INNER JOIN cakes ON steps.cake_key = cakes.cake_id WHERE (steps.cake_key = ? )
+
+content://com.example.wolfgao.mybakingapp/steps/1
+SELECT steps._id, cake_key, step_no, step_short, step_desc, step_video FROM steps WHERE (steps.cake_key = ? )
+
+ create table cakes (_ID integer primary key autoincrement, cake_key text unique not null, cake_name text not null, cake_image text, cake_ingre text);
+ CREATE TABLE steps (_id INTEGER PRIMARY KEY AUTOINCREMENT, cake_key TEXT NOT NULL, step_no TEXT, step_short TEXT, step_desc TEXT, step_video TEXT, FOREIGN KEY (cake_key) REFERENCES cakes (cake_id));
+ CREATE UNIQUE INDEX steps_i ON steps(cake_key, step_no);
+ INSERT INTO cakes (cake_key, cake_name, cake_image, cake_ingre) values("1", "Apple Pie", "", "Apple and something can be mixed.");
+ insert into steps (cake_key, step_no, step_short, step_desc, step_video) values ("1", "0", "get Apple", "How to choose apple, what kind of Apple can be used for pie?", "http://baidu.com");

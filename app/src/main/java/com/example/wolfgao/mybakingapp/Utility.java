@@ -16,11 +16,18 @@ import org.xmlpull.v1.XmlPullParserFactory;
 import java.io.IOException;
 import java.util.Locale;
 
-/**
+/** Review commets：
+ * 使用一个工具类来放置一些常用的函数方法非常棒！更进一步，我们还可以将其构造方法私有化来防止被外部实例化对象
+ * 就是加一个关键字：final
+ * public final class Utility{
+    private Utility(){}
+    }
  * Created by gaochuang on 2017/10/26.
  */
 
-public class Utility {
+
+public final class Utility {
+    private Utility(){}
 
     public static boolean checkNetworkStatus(Context con){
         ConnectivityManager connMgr = (ConnectivityManager)con.getSystemService(Context.CONNECTIVITY_SERVICE);
