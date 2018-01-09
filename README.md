@@ -1,8 +1,69 @@
 # 烘培项目- 高级进阶项目
-## 简单说明： 
+
+## What‘s new? - v1.2
+- Widge的更新：
+    + 增加了对listview的支持，这部分看起来比较容易，增加一个实现类继承RemoteViewsService，实际上关键在于list item click事件的处理;
+    +  增加了一个响应，点击widget字体可以打开主程序，完善体验;
+    + 增加了对每一个item事件的响应;
+    + 收获心得参见<a href="#1">widget部分2.0</a>
+
+#### <a name="1">widget部分2.0: </a>增加了listview，增加了点击打开主程序，增加了对每一个item点击的响应事件的处理
+
+- 增加了ListView，这部分的坑主要在于一定要两个layout文件，原来这部分没有注意，发现每次加载小部件都显示错误，后来发现原来一个小widget也需要两个layout，一个widget的布局文件，另一个是list item的布局文件，第二个太容易忽略了。
+- 增加ListView主要是要实现一个抽象类RemoteViewsService，这个类又要从工厂类中获得实例RemoteViewsFactory。基本数据的加载和处理都在这个工厂类实现，这个类有点像Adaptor, 我一直在想如何进行数据加载，后来伟大的万能的contentResolver来帮助我，最关键就是定义了一个cursor,很多案列都是直接初始化一个list。
+- 对Item 的click事件处理，这部分需要三部分共同努力完成，最好的参考代码还要看[谷歌的例子](http://docs.huihoo.com/android/3.0/resources/samples/StackWidget/index.html)，其他都是浮云，不可靠。
+    + 第一在listview的getViewAt方法里面定义一个clickIntent,参见代码：
+    ```
+    @Override
+    public RemoteViews getViewAt(int position) {
+        if (position < 0 || position >= mList.size())
+            return null;
+        String content = mList.get(position);
+
+        final RemoteViews views = new RemoteViews(mContext.getPackageName(),
+                R.layout.widget_list_item);
+        views.setTextViewText(R.id.widget_cake, content);
+
+        //在这里设计每一个item的点击事件，可以在OnReceive那里接收
+        Intent intent = new Intent();
+        intent.putExtra(MyBakingWidgetProvider.EXTRA_LIST_ITEM_TEXT, position);
+        views.setOnClickFillInIntent(R.id.widget_cake, intent);
+
+        return views;
+    }
+    ```
+    + 第二在onUpdate方法里面接受这个事件转变成PendingIntent,看实现代码：
+    ```
+    //也为了每一个item提高事件
+    Intent toastIntent = new Intent(context, MyBakingWidgetProvider.class);
+    toastIntent.setAction(MyBakingWidgetProvider.ITEM_CLICK);
+    toastIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
+    adapter.setData(Uri.parse(adapter.toUri(Intent.URI_INTENT_SCHEME)));
+    PendingIntent toastPendingIntent = PendingIntent.getBroadcast(context, 0, toastIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT);
+    mRemoteViews.setPendingIntentTemplate(R.id.widget_list, toastPendingIntent);
+    ```
+    + 第三在onReceive事件里面处理这个私有的action，本例子是一个toast action，看代码：
+    ```
+    else if(action.equals(ITEM_CLICK)){
+        // 处理点击广播事件
+        int widgetID = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,
+                AppWidgetManager.INVALID_APPWIDGET_ID);
+        int viewIndex = intent.getIntExtra(EXTRA_LIST_ITEM_TEXT,0);
+        Toast.makeText(context, "Touch view at " + viewIndex, Toast.LENGTH_SHORT).show();
+    ```
+    这里面容易忽略的还有就是widget id的选择，在ListView的实现类对应的是list item, 而在provider实现类中的onUpdate()和onReceive()中对应的widget是listview的ID。
+- 相关参考文章：
+    + [谷歌的参考文档和例子](http://docs.huihoo.com/android/3.0/resources/samples/StackWidget/index.html)
+    + [android widget简单开发二之点击事件](http://blog.csdn.net/bluky_di/article/details/54374718)
+    + [理解RemoteViews](https://www.jianshu.com/p/33e979ba6be1)
+    + [PendingIntent 的 API文档](https://developer.android.com/reference/android/app/PendingIntent.html)
+    + [PendingIntent详解](http://blog.csdn.net/harvic880925/article/details/42030955)
+
+## v1.1版本简单说明：
 - 这个例子主要的设计模式是list view ->详细页面 ->视频页面；
 - 主要用到的设计类有：RecyclerView, CardView, 这些view都在Fragment里面呈现；
-- 因为要求用ExoPlayer，这个是最近谷歌推荐的非常流行的播放器，我们借鉴了demo的部分，这个player最牛逼的地方主要是两点：第一支持的sample格式齐全，第二可以自适应，根据带宽来调节不同的播放源，这个对现在的移动互联网视频网站简直就是福音，好好搞搞，挺有意思的。
+- 因为要求用*ExoPlayer*，这个是最近谷歌推荐的非常流行的播放器，我们借鉴了demo的部分，这个player最牛逼的地方主要是两点：第一支持的sample格式齐全，第二可以自适应，根据带宽来调节不同的播放源，这个对现在的移动互联网视频网站简直就是福音，好好搞搞，挺有意思的。
 - 因为要从网络获取数据，必须用到后台进程，目前Android有好几种办法，我们用了谷歌比较推荐的SyncSerice和SyncAdapter，这个和Cursor结合的话，基本满足大部分类似需求；
 - 因为我们必须用Cursor来处理数据库，并且用了ContentProvider和ContentResolver，这部分花了不少精力终于搞明白他们的使用逻辑，的确有一些坑需要每个人去走一下才知道。
 - 对于数据处理，如何建立数据库，数据表，和建立provider这部分有规范文档和实例，学起来比较快。
@@ -15,7 +76,7 @@
 
 最后，这个项目对我来说确实挑战比较大，主要是我没有多余时间，只能抽空来搞，而且断断续续，总体帮助还是很大。
 
-## Configuration:
+## 项目配置:
 1. 增加了一个配置文件，在Assets目录下，名字叫做config.xml,里面主要是Server IP, Json文件路径，如下：
 ```
     <ip>http://05fa755e.ngrok.io</ip>
@@ -38,11 +99,7 @@
     4）style.xml文件主要是对你的app theme进行定制，这个也是很重要的文件；
 3. 另外Json数据里面没有提高图片的链接，因此我不得不在本地Assets目录下放了4个图片，主要来显示菜单的图片，在assets目录下的文件不会编译。
 
-## 关于宽屏的测试
-本项目虽然要求了对宽屏的实现，但是由于精力所限，时间所限，没有完全完成这部分的代码，也没有测试，抱歉。
-
 ## 编程心得 
-
 ### 如何获取assets目录下的XML文件，并解析：
 最主要的几个点：
 1. xpp.setInput(applicationContext.getAssets().open(fileName),null);
@@ -57,8 +114,6 @@
     2）这个账户的信息可以在一个xml文档里面保存，主要有contentAuthorityL，accountType
     3）验证账户的也是一个后台服务；
     4）在SyncAdapter里面完成了主要的任务：从网络读取数据，数据库写操作
-
-
 
 ### 数据网络获取异常，考虑UI界面的人性化，必须增加一个Empty view的处理，这个可以参见Sunshine项目的处理
     针对网络状况的检查，对server response code的处理，在空白页都要加上。
@@ -116,18 +171,17 @@ ExoPlayer is an application level media player for Android. It provides an alter
 
 2、第二种方式，是在宿主Activity中定义方法，将要传递的值传递到Fragment中，在Fragment中的onAttach方法中，获取到这个值。
 ```
-//宿主activity中的getTitles()方法
-public String getTitles(){
-    return "hello";
-}
+    //宿主activity中的getTitles()方法
+    public String getTitles(){
+        return "hello";
+    }
 
-//Fragment中的onAttach方法
+    //Fragment中的onAttach方法
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         titles = ((MainActivity) activity).getTitles();
     }
-//通过强转成宿主activity，就可以获取到传递过来的数据
 ```
 
 3、下面在扩展一下创建Fragment和传递数值
@@ -154,6 +208,7 @@ selectionArgs   用来替换上面selection中包含的＂？＂
 sortOrder   结果的行排序，也就是SQL中的ORDER BY，传递null则无序
 
 ### Widget的收获：主要是一个发送消息，一个接受消息，只要这两部分代码能对上，就问题不大
+#### 1.0 没有点击事件，没有listView
 发送部分：
 ```
     // Setting the package ensures that only components in our app will receive the broadcast
@@ -198,8 +253,7 @@ sortOrder   结果的行排序，也就是SQL中的ORDER BY，传递null则无�
     androidTestCompile 'com.android.support.test.espresso:espresso-contrib:3.0.1'
 ```
 ##### 一个最大的坑，你用onView经常会返回来一堆view，都是matched，但是要挑一个真正你要的view，Espresso这方面还需要再继续努力，我这里用了一个哥们的方法，把startsWith重写了，还不错，用在我的项目上很好。
- ```
- /**
+```/**
      * 作者：Mark_Liu
      链接：https://www.jianshu.com/p/a9b5e3f58232
      來源：简书
@@ -221,7 +275,8 @@ sortOrder   结果的行排序，也就是SQL中的ORDER BY，传递null则无�
             }
         };
     }
+```
 
-最后，在Android开发过程中，总会遇到这样那样的问题，要坚定信心，不断看文档和尝试，最终都能搞定，希望大家好运并能继续前进！！！
+#### 最后，在Android开发过程中，总会遇到这样那样的问题，要坚定信心，不断看文档和尝试，最终都能搞定，希望大家好运并能继续前进！！！
 
 
