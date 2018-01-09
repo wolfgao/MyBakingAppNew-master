@@ -57,9 +57,7 @@
     <string name="ima_not_loaded">Playing sample without ads, as the IMA extension was not loaded</string>
 
     <!-- widget -->
-
-    <string name="appwidget_text">EXAMPLE</string>
-    <string name="add_widget">Add widget</string>
+    <string name="appwidget_text">MyBaking</string>
 
     <!-- SyncAdapter related -->
     <string name="sync_account_type">wolfgao.example.com</string>
@@ -70,6 +68,9 @@
     <string name="pref_last_notification">last_notification</string>
     <string name="textview">Name</string>
     <string name="widget_recipe_id">ID</string>
+    <string name="widget_recipe_name">Recipe ID and Name</string>
+    <string name="empty_records_view">Empty Records</string>
+    <string name="mybaking_string_appwidget_text">MyBaking @string/appwidget_text</string>
 
 
 </resources>

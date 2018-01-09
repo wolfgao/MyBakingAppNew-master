@@ -60,7 +60,6 @@ public class MyBakingDBHelper extends SQLiteOpenHelper {
         // If you want to update the schema without wiping data, commenting out the next 2 lines
         // should be your top priority before modifying this method.
         db.execSQL("DROP TABLE IF EXISTS " + MyBakingContract.CakesEntry.TABLE_NAME);
-        //sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + WeatherContract.WeatherDictEntry.TABLE_NAME);
         db.execSQL("DROP TABLE IF EXISTS " + MyBakingContract.StepsEntry.TABLE_NAME);
         onCreate(db);
     }
