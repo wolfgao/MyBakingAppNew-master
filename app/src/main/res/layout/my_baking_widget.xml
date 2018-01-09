@@ -17,10 +17,13 @@
         android:textColor="@color/white"
         android:textSize="14sp" />
 
-    <FrameLayout android:id="@+id/widget"
+    <FrameLayout
+        android:id="@+id/widget_frame"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:clickable="true"
         android:padding="@dimen/widget_margin">
+
         <ListView
             android:id="@+id/widget_list"
             android:layout_width="match_parent"
@@ -28,13 +31,15 @@
             android:padding="5dp">
 
         </ListView>
-        <TextView android:id="@+id/widget_empty"
+
+        <TextView
+            android:id="@+id/widget_empty"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="center"
-            android:visibility="gone"
-            android:textColor="@color/colorAccent"
             android:text="@string/empty_records_view"
-            android:textSize="16sp"/>
+            android:textColor="@color/colorAccent"
+            android:textSize="16sp"
+            android:visibility="gone" />
     </FrameLayout>
 </LinearLayout>

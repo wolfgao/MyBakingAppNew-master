@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.util.Log;
 import android.widget.RemoteViews;
+import android.widget.Toast;
 
 import com.example.wolfgao.mybakingapp.MainActivity;
 import com.example.wolfgao.mybakingapp.MyRecycleAdapter;
@@ -35,7 +36,7 @@ import com.example.wolfgao.mybakingapp.R;
 public class MyBakingWidgetProvider extends AppWidgetProvider {
 
     private RemoteViews mRemoteViews;
-    //public final static String ITEM_CLICK = "com.example.wolfgao.mybaking.widget.action.CLICK";
+    public final static String ITEM_CLICK = "com.example.wolfgao.mybaking.widget.action.CLICK";
     public final static String EXTRA_LIST_ITEM_TEXT = "com.example.wolfgao.mybaking.widget.item_text";
     private static String tag = "appWidgetProvider";
 
@@ -54,23 +55,22 @@ public class MyBakingWidgetProvider extends AppWidgetProvider {
         adapter.setData(Uri.parse(adapter.toUri(Intent.URI_INTENT_SCHEME)));
         mRemoteViews.setRemoteAdapter(appWidgetId, R.id.widget_list, adapter);
 
-        //设置点击item。分为两部，第一步、为所有的item设置模板
-        /**给每一个item设计一个点击事件，这里不需要，我们给整个widget设计一个，只要点击就回到主activity
-         Intent clickIntent = new Intent(context, MyBakingWidgetProvider.class);
-        clickIntent.setAction(ITM_CLICK);
-        clickIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
-        PendingIntent pendingIntentTemplate = PendingIntent.getBroadcast(
-                context, 0, clickIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-        //设置为模板PendingIntent,表示如果有相似的intent（模板），使用之并更新extras
-        mRemoteViews.setPendingIntentTemplate(R.id.widget_list, pendingIntentTemplate);
-        */
-
         //跳转的业务逻辑——跳到MainActivity
         Intent homeIntent = new Intent(context, MainActivity.class);
         //将Intent包装成一个PendingIntent
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, homeIntent, 0);
-        //为控件增加一个点击事件：点击任何以一个item的text都会跳转到主界面
-        mRemoteViews.setOnClickPendingIntent(R.id.widget_list_item, pendingIntent);
+        //点击title的text都会跳转到主界面
+        mRemoteViews.setOnClickPendingIntent(R.id.list_widget_title, pendingIntent);
+
+        //也为了每一个item提高事件
+        Intent toastIntent = new Intent(context, MyBakingWidgetProvider.class);
+        toastIntent.setAction(MyBakingWidgetProvider.ITEM_CLICK);
+        toastIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
+        adapter.setData(Uri.parse(adapter.toUri(Intent.URI_INTENT_SCHEME)));
+        PendingIntent toastPendingIntent = PendingIntent.getBroadcast(context, 0, toastIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT);
+        mRemoteViews.setPendingIntentTemplate(R.id.widget_list, toastPendingIntent);
+
 
         // 部署到具体的widget
         appWidgetManager.updateAppWidget(appWidgetId, mRemoteViews);
@@ -114,18 +114,14 @@ public class MyBakingWidgetProvider extends AppWidgetProvider {
                     MyBakingWidgetProvider.class));
             onUpdate(context, appWidgetManager, appWidgetIds);
 
-        }/**
+        }
         else if(action.equals(ITEM_CLICK)){
             // 处理点击广播事件
-            int widgetID = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID);
-            if (widgetID == AppWidgetManager.INVALID_APPWIDGET_ID){
-                //无效的widget
-                return;
-            }
-            //获得有效的事件
-            String itemText = intent.getStringExtra(EXTRA_LIST_ITEM_TEXT);
-            Toast.makeText(context, itemText, Toast.LENGTH_LONG).show();
-        }*/
+            int widgetID = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,
+                    AppWidgetManager.INVALID_APPWIDGET_ID);
+            int viewIndex = intent.getIntExtra(EXTRA_LIST_ITEM_TEXT,0);
+            Toast.makeText(context, "Touch view at " + viewIndex, Toast.LENGTH_SHORT).show();
+        }
         else if (AppWidgetManager.ACTION_APPWIDGET_DELETED.equals(action)) {
             Bundle extras = intent.getExtras();
             if (extras != null && extras.containsKey(AppWidgetManager.EXTRA_APPWIDGET_ID)) {

@@ -98,7 +98,7 @@ public class ListViewService extends RemoteViewsService {
             }
             do {
                 mList.add(mCursor.getString(INDEX_CAKE_ID) +
-                "     " + mCursor.getString(INDEX_CAKE_NAME));
+                "    " + mCursor.getString(INDEX_CAKE_NAME));
             }while (mCursor.moveToNext());
         }
 
@@ -127,20 +127,10 @@ public class ListViewService extends RemoteViewsService {
                     R.layout.widget_list_item);
             views.setTextViewText(R.id.widget_cake, content);
 
-            /**跳转的业务逻辑——跳到MainActivity, 定义PengdingIntent,然后给widget的相关控件关联上
-
+            //在这里设计每一个item的点击事件，可以在OnReceive那里接收
             Intent intent = new Intent();
-            intent.putExtra(MyBakingWidgetProvider.EXTRA_LIST_ITEM_TEXT, "Position of Item Clicked : " + position);
-            //setOnClickFillInIntent()在模板的基础上为具体的item设置fillInIntent，每个item触发，
-            intent.putExtra("content", content);
-            views.setOnClickFillInIntent(R.id.widget_list_item, intent);
-             */
-            //跳转的业务逻辑——跳到MainActivity
-            //Intent homeIntent = new Intent(mContext, MainActivity.class);
-            //将Intent包装成一个PendingIntent
-            //PendingIntent pendingIntent = PendingIntent.getActivity(mContext, 0, homeIntent, 0);
-            //为控件增加一个点击事件：点击任何以一个item的text都会跳转到主界面
-            //views.setOnClickPendingIntent(R.id.widget_list, pendingIntent);
+            intent.putExtra(MyBakingWidgetProvider.EXTRA_LIST_ITEM_TEXT, position);
+            views.setOnClickFillInIntent(R.id.widget_cake, intent);
 
             return views;
         }
