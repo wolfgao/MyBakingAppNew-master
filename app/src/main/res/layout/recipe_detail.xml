@@ -57,13 +57,14 @@
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|end"
             android:layout_marginBottom="10dp"
+            android:gravity="fill_vertical|center"
             android:orientation="horizontal">
 
             <Button
                 android:id="@+id/retry_button"
-                style="@style/?android:attr/buttonBarButtonStyle"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                style="?android:attr/buttonBarButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:text="@string/retry"
                 android:visibility="gone" />
 
@@ -74,30 +75,44 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_weight="1">
+        android:layout_weight="1"
+        android:baselineAligned="false"
+        android:gravity="bottom">
 
-        <Button
-            android:id="@+id/prev_button"
-            style="?android:attr/buttonBarButtonStyle"
-            android:layout_width="match_parent"
+        <LinearLayout
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="start"
-            android:layout_weight="1"
-            android:padding="5dp"
-            android:textSize="16sp"
-            android:text="@string/Prev" />
+            android:layout_gravity="start">
 
-        <Button
-            android:id="@+id/next_button"
-            style="?android:attr/buttonBarButtonStyle"
+            <Button
+                android:id="@+id/prev_button"
+                style="?android:attr/buttonBarButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start"
+                android:padding="5dp"
+                android:text="@string/Prev"
+                android:textSize="16sp" />
+
+        </LinearLayout>
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="end"
-            android:layout_weight="1"
-            android:padding="5dp"
-            android:textSize="16sp"
-            android:text="@string/Next" />
+            android:gravity="end">
 
+            <Button
+                android:id="@+id/next_button"
+                style="?android:attr/buttonBarButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:padding="5dp"
+                android:text="@string/Next"
+                android:textSize="16sp" />
+
+        </LinearLayout>
     </LinearLayout>
 
 </LinearLayout>
