@@ -4,6 +4,9 @@ import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -87,27 +90,31 @@ public class MyRecycleAdapter extends RecyclerViewCursorAdapter<MyRecycleAdapter
             try {
                 is = mContext.getAssets().open(recipeName+".jpg");
                 bitmap = BitmapFactory.decodeStream(is);
+                holder.iv.setImageBitmap(bitmap);
                 is.close();
             } catch (IOException e) {
                 Log.e(LOG_TAG, "获取本地图片失败！"+ "\n" + e.getMessage());
             }
         }
         else { //加载网络图片
-            try {
-                HttpURLConnection conn = (HttpURLConnection)(new URL(imageUrl)).openConnection();
-                conn.setDoInput(true);
-                conn.connect();
-                is = conn.getInputStream();
-                bitmap = BitmapFactory.decodeStream(is);
-                is.close();
-            } catch (MalformedURLException e) {
-                Log.e(LOG_TAG,"网络URL不正确！"+"\n" + e.getMessage());
-            } catch (IOException e) {
-                Log.e(LOG_TAG, "加载网络图片错误！" +"\n" + e.getMessage());
-            }
-        }
+            //通过handler的方式来获得async从网络获得图片
+            Handler handler = new Handler(){
+                @Override
+                public void handleMessage(Message msg) {
+                    switch (msg.what) {
+                        case 1:
+                            Bitmap bitmap = (Bitmap) msg.obj;
+                            break;
+                        default:
+                            break;
+                    }
+                }
 
-        holder.iv.setImageBitmap(bitmap);
+            };
+            DownloadImageTask imageTask =  new DownloadImageTask(imageUrl,handler);
+            //We only input one url, so
+            imageTask.execute();
+        }
 
         if(onItemClick != null){
             holder.itemView.setOnClickListener(new View.OnClickListener() {
@@ -116,6 +123,57 @@ public class MyRecycleAdapter extends RecyclerViewCursorAdapter<MyRecycleAdapter
                     onItemClick.onClick(holder.getAdapterPosition()); //使用接口回调的方法将参数传递出来
                 }
             });
+        }
+    }
+
+    /**
+     * Params: url String
+     * Return: Bitmap object
+     */
+    private class DownloadImageTask extends AsyncTask<String, Integer, Bitmap> {
+
+        String mUrl;
+        Handler mHandler;
+
+        public DownloadImageTask(String url, Handler handler){
+            this.mUrl = url;
+            this.mHandler = handler;
+        }
+        @Override
+        protected Bitmap doInBackground(String... params) {
+            InputStream is = null;
+            Bitmap bitmap = null;
+            //params是一个String数组
+            int i =0;
+            try {
+                HttpURLConnection conn = (HttpURLConnection) (new URL(mUrl)).openConnection();
+                conn.setDoInput(true);
+                conn.connect();
+                is = conn.getInputStream();
+                bitmap = BitmapFactory.decodeStream(is);
+                is.close();
+                return bitmap;
+            } catch (MalformedURLException e) {
+                Log.e(LOG_TAG, "网络URL不正确！" + "\n" + e.getMessage());
+            } catch (IOException e) {
+                Log.e(LOG_TAG, "加载网络图片错误！" + "\n" + e.getMessage());
+            }
+            if (isCancelled()) return null;
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Bitmap result){
+            super.onPostExecute(result);
+            Message msg = mHandler.obtainMessage();
+            if(result!=null){
+                msg.what = 1;
+                msg.obj = result;
+            }else{
+                msg.what = 2;
+            }
+            mHandler.sendMessage(msg);
+
         }
     }
 

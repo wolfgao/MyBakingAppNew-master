@@ -6,9 +6,60 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/recipe_detail_recyclerview"
+    <TextView
+        android:id="@+id/step_short_desc"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="wrap_content"
+        android:gravity="fill_vertical|center|start"
+        android:padding="10dp"
+        android:textSize="16sp" />
+
+    <Space
+        android:id="@+id/step_space_middle1"
+        android:layout_width="match_parent"
+        android:layout_height="5dp" />
+
+    <TextView
+        android:id="@+id/step_desc"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="start|fill_vertical"
+        android:padding="5dp"
+        android:textSize="14sp" />
+
+    <Space
+        android:id="@+id/step_space_middle2"
+        android:layout_width="match_parent"
+        android:layout_height="5dp" />
+
+    <FrameLayout android:id="@+id/player_root"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:keepScreenOn="true">
+
+        <com.google.android.exoplayer2.ui.SimpleExoPlayerView
+            android:id="@+id/step_video"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:elevation="@dimen/progressbar_small"
+            android:minHeight="@dimen/videoview_default_height"
+            android:visibility="visible">
+        </com.google.android.exoplayer2.ui.SimpleExoPlayerView >
+
+        <LinearLayout android:id="@+id/controls_root"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button android:id="@+id/retry_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/retry"
+                android:visibility="gone"/>
+
+        </LinearLayout>
+
+    </FrameLayout>
 
 </LinearLayout>
