@@ -22,6 +22,7 @@ public class MyBakingProvider extends ContentProvider {
     static final int CAKES = 200;
     static final int CAKE_WITH_KEY = 202;
     static final int STEPS = 300;
+    static final int STEP_WITH_NO = 301;
     static final int STEPS_WITH_CAKEID = 302;
 
     private MyBakingDBHelper mOpenHelper;
@@ -50,6 +51,11 @@ public class MyBakingProvider extends ContentProvider {
 
     public static final String sStepsCakeIdSelection = MyBakingContract.StepsEntry.TABLE_NAME +
             "." + MyBakingContract.StepsEntry.COLUMN_CAKE_KEY + " = ? ";
+
+    public static final String sStepsStepNoSelection = MyBakingContract.StepsEntry.TABLE_NAME +
+            "." + MyBakingContract.StepsEntry.COLUMN_CAKE_KEY + " = ? and " +
+            MyBakingContract.StepsEntry.TABLE_NAME + "." + MyBakingContract.StepsEntry.COLUMN_STEP_NO + " = ? ";
+
 
     private static UriMatcher buildUriMatcher() {
         //Add all Path to the UriMatcher, then return a code when a match is found.
@@ -83,6 +89,8 @@ public class MyBakingProvider extends ContentProvider {
         matcher.addURI(authority,MyBakingContract.PATH_STEPS, STEPS);
         matcher.addURI(authority,MyBakingContract.PATH_CAKES + "/#",CAKE_WITH_KEY);
         matcher.addURI(authority,MyBakingContract.PATH_STEPS + "/*", STEPS_WITH_CAKEID);
+        //要匹配的content://com.example.wolfgao.mybakingapp/steps/1/0
+        matcher.addURI(authority, MyBakingContract.PATH_STEPS + "/*/#", STEP_WITH_NO);
         return matcher;
     }
 
@@ -129,6 +137,9 @@ public class MyBakingProvider extends ContentProvider {
             case STEPS_WITH_CAKEID:
                 retCursor = getStepsByCakeID(uri, projection, sortOrder);
                 break;
+            case STEP_WITH_NO:
+                retCursor = getStepsByCakeKeyAndNo(uri, projection, sortOrder);
+                break;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
@@ -148,19 +159,20 @@ public class MyBakingProvider extends ContentProvider {
                 sortOrder);
     }
 
-    /**
-    private Cursor getStepsByNo(Uri uri, String[] projection, String sortOrder) {
-        String step_no = MyBakingContract.StepsEntry.getCakeKeyFromUri(uri);
+
+    private Cursor getStepsByCakeKeyAndNo(Uri uri, String[] projection, String sortOrder) {
+        String cake_key = MyBakingContract.StepsEntry.getCakeKeyFromStepCakeKeyNoUri(uri);
+        String step_no = MyBakingContract.StepsEntry.getStepNoFromStepCakeKeyNoUri(uri);
         //因为steps的stepid实际上是cakes的cake name
         return sBakingStepsbyIdBuilder.query(mOpenHelper.getReadableDatabase(),
                 projection,
-                sStepNoSelection,
-                new String[]{step_no},
+                sStepsStepNoSelection,
+                new String[]{cake_key,step_no},
                 null,
                 null,
                 sortOrder);
     }
-    */
+
     private Cursor getStepsByCakeID(Uri uri, String[] projection, String sortOrder) {
         String cake_key = MyBakingContract.StepsEntry.getCakeKeyFromUri(uri);
         //因为steps的stepid实际上是cakes的cake key
@@ -188,6 +200,8 @@ public class MyBakingProvider extends ContentProvider {
                 return MyBakingContract.StepsEntry.CONTENT_TYPE;
             case STEPS:
                 return MyBakingContract.StepsEntry.CONTENT_TYPE;
+            case STEP_WITH_NO:
+                return MyBakingContract.StepsEntry.CONTENT_ITEM_TYPE;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }

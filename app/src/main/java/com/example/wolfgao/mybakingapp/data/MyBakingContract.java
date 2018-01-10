@@ -75,7 +75,7 @@ public class MyBakingContract {
         public static final String COLUMN_STEP_DESC = "step_desc";
         public static final String COLUMN_STEP_VIDEO = "step_video";
 
-        //Using step name to get all data of steps
+        //Using cake_key to get all data of steps
         public static Uri buildCakeKeyUri(String cake_key) {
             return CONTENT_URI.buildUpon().appendPath(cake_key).build();
         }
@@ -84,9 +84,26 @@ public class MyBakingContract {
             return uri.getPathSegments().get(1);
         }
 
+        //Using step_no to get one step details
+        public static Uri buildStepsUriByStepNo(String cake_key, String step_no){
+            return CONTENT_URI.buildUpon()
+                    .appendPath(cake_key)
+                    .appendPath(step_no)
+                    .build();
+        }
+
+        public static String getCakeKeyFromStepCakeKeyNoUri(Uri uri) {
+            return uri.getPathSegments().get(1);
+        }
+        public static String getStepNoFromStepCakeKeyNoUri(Uri uri) {
+            return uri.getPathSegments().get(2);
+        }
+
         //return record id
         public static Uri buildStepsUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);
         }
+
+
     }
 }

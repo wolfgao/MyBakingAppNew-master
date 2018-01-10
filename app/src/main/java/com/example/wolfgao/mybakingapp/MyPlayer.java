@@ -52,12 +52,10 @@ import com.google.android.exoplayer2.util.Util;
 
 public class MyPlayer implements View.OnClickListener, PlaybackControlView.VisibilityListener{
 
-    private View mRootView;
     private Button retryButton;
     private LinearLayout debugRootView;
     private SimpleExoPlayerView simpleExoPlayerView;
 
-    private String mUrl;
     private Context mContext;
     private Intent mIntent;
     public static final String PREFER_EXTENSION_DECODERS = "prefer_extension_decoders";
@@ -86,7 +84,6 @@ public class MyPlayer implements View.OnClickListener, PlaybackControlView.Visib
     //default constructor
     public MyPlayer(Context context, View rootView) {
         mContext = context;
-        mRootView = rootView;
         shouldAutoPlay = true;
         clearResumePosition();
         userAgent = Util.getUserAgent(context, "MyBakingApp");
@@ -222,13 +219,10 @@ public class MyPlayer implements View.OnClickListener, PlaybackControlView.Visib
     @Override
     public void onClick(View view) {
         if (view == retryButton) {
-            if(mUrl != null || mUrl != "") {
-                initializePlayer();
-            }
-            else{
-                Toast.makeText(mContext, "本步骤没有视频", Toast.LENGTH_SHORT).show();
-            }
-
+            initializePlayer();
+        }
+        else{
+            Toast.makeText(mContext, "本步骤没有视频", Toast.LENGTH_SHORT).show();
         }
     }
 

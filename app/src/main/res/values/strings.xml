@@ -71,6 +71,8 @@
     <string name="widget_recipe_name">Recipe ID and Name</string>
     <string name="empty_records_view">Empty Records</string>
     <string name="mybaking_string_appwidget_text">MyBaking @string/appwidget_text</string>
+    <string name="Prev">Prev</string>
+    <string name="Next">Next</string>
 
 
 </resources>

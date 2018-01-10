@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/recipe_detail_view"
+    xmlns:tools="http://schemas.android.com/tools" android:id="@+id/recipe_detail_view"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
@@ -32,34 +32,72 @@
         android:layout_width="match_parent"
         android:layout_height="5dp" />
 
-    <FrameLayout android:id="@+id/player_root"
+    <FrameLayout
+        android:id="@+id/player_root"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_weight="1"
         android:keepScreenOn="true">
 
         <com.google.android.exoplayer2.ui.SimpleExoPlayerView
             android:id="@+id/step_video"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
+            android:layout_gravity="top|start"
             android:elevation="@dimen/progressbar_small"
             android:minHeight="@dimen/videoview_default_height"
-            android:visibility="visible">
-        </com.google.android.exoplayer2.ui.SimpleExoPlayerView >
+            android:visibility="visible"
+            tools:targetApi="lollipop">
 
-        <LinearLayout android:id="@+id/controls_root"
+        </com.google.android.exoplayer2.ui.SimpleExoPlayerView>
+
+        <LinearLayout
+            android:id="@+id/controls_root"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_gravity="bottom|end"
+            android:layout_marginBottom="10dp"
             android:orientation="horizontal">
 
-            <Button android:id="@+id/retry_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+            <Button
+                android:id="@+id/retry_button"
+                style="@style/?android:attr/buttonBarButtonStyle"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
                 android:text="@string/retry"
-                android:visibility="gone"/>
+                android:visibility="gone" />
 
         </LinearLayout>
 
     </FrameLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="1">
+
+        <Button
+            android:id="@+id/prev_button"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:layout_weight="1"
+            android:padding="5dp"
+            android:textSize="16sp"
+            android:text="@string/Prev" />
+
+        <Button
+            android:id="@+id/next_button"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_weight="1"
+            android:padding="5dp"
+            android:textSize="16sp"
+            android:text="@string/Next" />
+
+    </LinearLayout>
 
 </LinearLayout>
