@@ -1,5 +1,9 @@
 # 烘培项目- 高级进阶项目
 
+## What‘s new? - v1.3
+- 对steps的实现，原来是通过recyclerview来实现，相对来说比较简单，但是没有考虑到这么多video播放，很难控制，因此现在改成由fragment来实现，但是还是通过loadermanger的方式。
+- 原来在获取网络图片的地方是直接写在main线程，这个对UI来说会造成卡顿，因此这部分改成了通过aysnctask来实现，有机会继续研究一下okhttp3的实现，开实例代码比较简单。
+
 ## What‘s new? - v1.2
 - Widge的更新：
     + 增加了对listview的支持，这部分看起来比较容易，增加一个实现类继承RemoteViewsService，实际上关键在于list item click事件的处理;
