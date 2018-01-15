@@ -1,5 +1,23 @@
 # 烘培项目- 高级进阶项目
 
+## What‘s new? - v1.4
+- 对widget增加了一个配置的activity,最大障碍是很难搞定各个intent之间的传递，刚开始希望能通过intent传递配置好的list,发现传过来后居然是空，还需要继续努力掌握这部分知识。
+- 所以现在还是通过SP搞定的。
+- widget 的配置基本上就是多了一个Activity,这个activity要在两个地方声明一下：
+    + AndroidManifes声明
+``` 
+    <activity android:name=".widget.SelectRecipeActivity">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE"/>
+            </intent-filter>
+    </activity>
+```
+    + App Widget 的初始化 xml 文件声明
+```
+    android:configure="com.example.android.ExampleAppWidgetConfigure"
+```
+- 参考文献：[Android 开发之 App Widget 详解](https://www.jianshu.com/p/88ee2bde693c)
+
 ## What‘s new? - v1.3
 - 对steps的实现，原来是通过recyclerview来实现，相对来说比较简单，但是没有考虑到这么多video播放，很难控制，因此现在改成由fragment来实现，但是还是通过loadermanger的方式。
 - 原来在获取网络图片的地方是直接写在main线程，这个对UI来说会造成卡顿，因此这部分改成了通过aysnctask来实现，有机会继续研究一下okhttp3的实现，开实例代码比较简单。
