@@ -13,6 +13,7 @@ import android.util.Log;
 import android.widget.RemoteViews;
 import android.widget.Toast;
 
+import com.example.wolfgao.mybakingapp.DetailActivity;
 import com.example.wolfgao.mybakingapp.MainActivity;
 import com.example.wolfgao.mybakingapp.MyRecycleAdapter;
 import com.example.wolfgao.mybakingapp.R;
@@ -36,45 +37,55 @@ import com.example.wolfgao.mybakingapp.R;
 public class MyBakingWidgetProvider extends AppWidgetProvider {
 
     private RemoteViews mRemoteViews;
+    private Intent mAdapter;
+    private Intent inputIntent;
     public final static String ITEM_CLICK = "com.example.wolfgao.mybaking.widget.action.CLICK";
+    public final static String EXTRA_LIST_ITEM_POS = "com.example.wolfgao.mybaking.widget.item_pos";
     public final static String EXTRA_LIST_ITEM_TEXT = "com.example.wolfgao.mybaking.widget.item_text";
     private static String tag = "appWidgetProvider";
 
     private void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
                                 int appWidgetId) {
         Log.d(tag, "onUpdate function is working...");
-        //创建一个RemoteView并设置他的adapter
-        mRemoteViews = new RemoteViews(context.getPackageName(), R.layout.my_baking_widget);
+        if (mRemoteViews == null)
+            mRemoteViews = new RemoteViews(context.getPackageName(), R.layout.my_baking_widget);
         mRemoteViews.setEmptyView(R.id.widget_list, R.id.widget_empty);
-
         // 设置 ListView 的adapter:
         // (01) intent: 对应启动 ListViewService(RemoteViewsService) 的intent
         // (02) setRemoteAdapter: 设置 ListView 的适配器
-        Intent adapter = new Intent(context, ListViewService.class);
-        adapter.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
-        adapter.setData(Uri.parse(adapter.toUri(Intent.URI_INTENT_SCHEME)));
-        mRemoteViews.setRemoteAdapter(appWidgetId, R.id.widget_list, adapter);
+        //mAdapter = new Intent(context, ListViewService.class);
+        //mAdapter.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
+        //mAdapter.setData(Uri.parse(mAdapter.toUri(Intent.URI_INTENT_SCHEME)));
+        //mRemoteViews.setRemoteAdapter(appWidgetId, R.id.widget_list, mAdapter);
+
 
         //跳转的业务逻辑——跳到MainActivity
-        Intent homeIntent = new Intent(context, MainActivity.class);
+        //Intent homeIntent = new Intent(context, MainActivity.class);
         //将Intent包装成一个PendingIntent
-        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, homeIntent, 0);
+        //PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, homeIntent, 0);
         //点击title的text都会跳转到主界面
-        mRemoteViews.setOnClickPendingIntent(R.id.list_widget_title, pendingIntent);
+        //mRemoteViews.setOnClickPendingIntent(R.id.list_widget_title, pendingIntent);
 
         //也为了每一个item提高事件
-        Intent toastIntent = new Intent(context, MyBakingWidgetProvider.class);
-        toastIntent.setAction(MyBakingWidgetProvider.ITEM_CLICK);
-        toastIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
-        adapter.setData(Uri.parse(adapter.toUri(Intent.URI_INTENT_SCHEME)));
-        PendingIntent toastPendingIntent = PendingIntent.getBroadcast(context, 0, toastIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT);
-        mRemoteViews.setPendingIntentTemplate(R.id.widget_list, toastPendingIntent);
+        //Intent toastIntent = new Intent(context, MyBakingWidgetProvider.class);
+        //toastIntent.setAction(MyBakingWidgetProvider.ITEM_CLICK);
+        //toastIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
+        //mAdapter.setData(Uri.parse(mAdapter.toUri(Intent.URI_INTENT_SCHEME)));
+        //PendingIntent toastPendingIntent = PendingIntent.getBroadcast(context, 0, toastIntent,
+        //        PendingIntent.FLAG_UPDATE_CURRENT);
+        //mRemoteViews.setPendingIntentTemplate(R.id.widget_list, toastPendingIntent);
 
 
         // 部署到具体的widget
         appWidgetManager.updateAppWidget(appWidgetId, mRemoteViews);
     }
+
+    /**
+     * onUpdate()：是最重要的回调函数，根据 updatePeriodMillis 定义的定期刷新操作会调用该函数，此外当用户添加
+     * Widget 时也会调用该函数，可以在这里进行必要的初始化操作。但如果在<appwidget-provider> 中声明了android:
+     * configure 的 Activity，在用户添加 Widget 时，不会调用 onUpdate()，需要由 configure Activity去负责
+     * 调用 AppWidgetManager.updateAppWidget() 完成 Widget 更新，后续的定时更新还是会继续调用 onUpdate()的。
+     */
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
@@ -102,10 +113,53 @@ public class MyBakingWidgetProvider extends AppWidgetProvider {
         super.onRestored(context,oldAppWidgetIds,newAppWidgetIds);
     }
 
+    //如果从配置返回的intent带有extras，就会在这里完成widget的更新
+    @Override
+    public void onAppWidgetOptionsChanged(Context context, AppWidgetManager appWidgetManager,
+                                          int appWidgetId, Bundle newExtras){
+        super.onAppWidgetOptionsChanged(context,appWidgetManager,appWidgetId,newExtras);
+
+        //更新title
+        if (mRemoteViews == null)
+            mRemoteViews = new RemoteViews(context.getPackageName(), R.layout.my_baking_widget);
+        mRemoteViews.setTextViewText(R.id.list_widget_title,
+                SelectRecipeActivity.loadTitlePref(context,appWidgetId));
+
+        //传值
+        mAdapter = new Intent(context, ListViewService.class);
+        mAdapter.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
+        mAdapter.putExtras(newExtras);
+        mRemoteViews.setRemoteAdapter(appWidgetId, R.id.widget_list, mAdapter);
+
+        //跳转的业务逻辑——跳到MainActivity
+        Intent homeIntent = new Intent(context, MainActivity.class);
+        //将Intent包装成一个PendingIntent
+        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, homeIntent, 0);
+        //点击title的text都会跳转到主界面
+        mRemoteViews.setOnClickPendingIntent(R.id.list_widget_title, pendingIntent);
+
+        //也为了每一个item提高事件
+        Intent itemIntent = new Intent(context, MyBakingWidgetProvider.class);
+        itemIntent.setAction(MyBakingWidgetProvider.ITEM_CLICK);
+        itemIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
+        mAdapter.setData(Uri.parse(mAdapter.toUri(Intent.URI_INTENT_SCHEME)));
+        PendingIntent itemtPendingIntent = PendingIntent.getBroadcast(context, 0, itemIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT);
+        mRemoteViews.setPendingIntentTemplate(R.id.widget_list, itemtPendingIntent);
+
+        // 部署到具体的widget
+        appWidgetManager.updateAppWidget(appWidgetId, mRemoteViews);
+    }
+
     public void onReceive(@NonNull Context context, @NonNull Intent intent){
         super.onReceive(context, intent);
         //获得broadcast过来Intent 的action作为过滤调节
+        //初始化
+        if (mRemoteViews == null)
+            mRemoteViews = new RemoteViews(context.getPackageName(), R.layout.my_baking_widget);
         String action = intent.getAction();
+        //变成类变量
+        this.inputIntent = intent;
         AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
 
         if(action.equals(MyRecycleAdapter.APPWIDGET_UPDATE)){
@@ -115,11 +169,25 @@ public class MyBakingWidgetProvider extends AppWidgetProvider {
             onUpdate(context, appWidgetManager, appWidgetIds);
 
         }
+        //Sent when the custom extras for an AppWidget change.
+        else if(action.equals("android.appwidget.action.APPWIDGET_UPDATE_OPTIONS")){
+            //触发AppWidgetProvider.onAppWidgetOptionsChanged()
+            int appWidgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,
+                    AppWidgetManager.INVALID_APPWIDGET_ID);
+            onAppWidgetOptionsChanged(context,appWidgetManager,appWidgetId,intent.getExtras());
+        }
         else if(action.equals(ITEM_CLICK)){
             // 处理点击广播事件
             int widgetID = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,
                     AppWidgetManager.INVALID_APPWIDGET_ID);
             int viewIndex = intent.getIntExtra(EXTRA_LIST_ITEM_TEXT,0);
+            //跳转的业务逻辑——跳到DetailActivity
+            Intent detailIntent = new Intent(context, DetailActivity.class);
+            //将Intent包装成一个PendingIntent
+            PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, detailIntent, 0);
+            //
+            mRemoteViews.setOnClickPendingIntent(R.id.widget_cake, pendingIntent);
+
             Toast.makeText(context, "Touch view at " + viewIndex, Toast.LENGTH_SHORT).show();
         }
         else if (AppWidgetManager.ACTION_APPWIDGET_DELETED.equals(action)) {

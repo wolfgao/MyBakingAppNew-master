@@ -65,21 +65,25 @@ public class ListViewService extends RemoteViewsService {
         //These indexes must match the projection
         private static final int INDEX_CAKE_ID = 0;
         private static final int INDEX_CAKE_NAME = 1;
+
         private String tag = "ListRemoteViewsFactory";
         private Context mContext;
         private Cursor mCursor;
-        private int mAppWidgetId;
+        private Intent mIntent;
         private List<String> mList = new ArrayList<String>();
+        private int mAppWidgetId;
 
         public ListRemoteViewsFactory(Context context, Intent intent) {
             Log.d(tag,"ListRemoteViewsFactory constructed");
             mContext = context;
-            //Get names from the ContentProvider
+
+            this.mIntent = intent;
+            mAppWidgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,
+                    AppWidgetManager.INVALID_APPWIDGET_ID);
+
             Uri contentUri = MyBakingContract.CakesEntry.CONTENT_URI;
             mCursor = getContentResolver().query(contentUri,BAKING_COLUMNS,null,
                     null, null);
-            mAppWidgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,
-                    AppWidgetManager.INVALID_APPWIDGET_ID);
 
             if(Looper.myLooper() == null){
                 Looper.prepare();
@@ -88,18 +92,32 @@ public class ListViewService extends RemoteViewsService {
 
         @Override
         public void onCreate() {
-            if (mCursor == null){
-                return;
+
+            //从配置来的list，重新加载
+            //TODO: 从intent获得信息截取出现问题
+            String[] selected = SelectRecipeActivity.loadListPref(mContext,mAppWidgetId);
+            if(selected != null) {
+                if(mList!= null)
+                    mList.clear();
+                for (int i = 0; i < selected.length; i++) {
+                    mList.add(selected[i]);
+                }
             }
-            //移到第一行
-            if (!mCursor.moveToFirst()) {
-                mCursor.close();
-                return;
+             else
+            {
+                if (mCursor == null){
+                    return;
+                }
+                //移到第一行
+                if (!mCursor.moveToFirst()) {
+                    mCursor.close();
+                    return;
+                }
+                do {
+                    mList.add(mCursor.getString(INDEX_CAKE_ID) +
+                            "    " + mCursor.getString(INDEX_CAKE_NAME));
+                }while (mCursor.moveToNext());
             }
-            do {
-                mList.add(mCursor.getString(INDEX_CAKE_ID) +
-                "    " + mCursor.getString(INDEX_CAKE_NAME));
-            }while (mCursor.moveToNext());
         }
 
         @Override
@@ -108,7 +126,7 @@ public class ListViewService extends RemoteViewsService {
 
         @Override
         public void onDestroy() {
-            mCursor.close();
+            //mCursor.close();
             mList.clear();
         }
 
@@ -129,7 +147,10 @@ public class ListViewService extends RemoteViewsService {
 
             //在这里设计每一个item的点击事件，可以在OnReceive那里接收
             Intent intent = new Intent();
-            intent.putExtra(MyBakingWidgetProvider.EXTRA_LIST_ITEM_TEXT, position);
+            intent.putExtra(MyBakingWidgetProvider.EXTRA_LIST_ITEM_POS, position);
+            //假定我们的菜单最多不超过10个，否则要把cake_key和cake_name作为两个元素来处理
+            String cake_key = mList.get(position).substring(0,1);
+            intent.setData(MyBakingContract.StepsEntry.buildCakeKeyUri(cake_key));
             views.setOnClickFillInIntent(R.id.widget_cake, intent);
 
             return views;

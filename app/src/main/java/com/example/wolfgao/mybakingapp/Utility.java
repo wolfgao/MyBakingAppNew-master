@@ -101,6 +101,7 @@ public final class Utility {
         return trackName.length() == 0 ? "unknown" : trackName;
     }
 
+
     private static String buildResolutionString(Format format) {
         return format.width == Format.NO_VALUE || format.height == Format.NO_VALUE
                 ? "" : format.width + "x" + format.height;

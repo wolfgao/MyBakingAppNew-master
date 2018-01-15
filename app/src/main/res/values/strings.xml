@@ -73,6 +73,11 @@
     <string name="mybaking_string_appwidget_text">MyBaking @string/appwidget_text</string>
     <string name="Prev">Prev</string>
     <string name="Next">Next</string>
+    <string name="you_can_chang_widget_title_here">You can chang widget title here</string>
+    <string name="change_title">Change Title:</string>
+    <string name="select_recipe_hint">Please select the recipe you want to display:</string>
+    <string name="button_save">保 存</string>
+    <string name="button_cancel">取 消</string>
 
 
 </resources>
