@@ -38,7 +38,7 @@ public class MyBakingWidgetProvider extends AppWidgetProvider {
 
     private RemoteViews mRemoteViews;
     private Intent mAdapter;
-    private Intent inputIntent;
+    private Uri mItemUri;
     public final static String ITEM_CLICK = "com.example.wolfgao.mybaking.widget.action.CLICK";
     public final static String EXTRA_LIST_ITEM_POS = "com.example.wolfgao.mybaking.widget.item_pos";
     public final static String EXTRA_LIST_ITEM_TEXT = "com.example.wolfgao.mybaking.widget.item_text";
@@ -142,7 +142,8 @@ public class MyBakingWidgetProvider extends AppWidgetProvider {
         Intent itemIntent = new Intent(context, MyBakingWidgetProvider.class);
         itemIntent.setAction(MyBakingWidgetProvider.ITEM_CLICK);
         itemIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
-        mAdapter.setData(Uri.parse(mAdapter.toUri(Intent.URI_INTENT_SCHEME)));
+        itemIntent.setData(mItemUri);
+        //mAdapter.setData(Uri.parse(mAdapter.toUri(Intent.URI_INTENT_SCHEME)));
         PendingIntent itemtPendingIntent = PendingIntent.getBroadcast(context, 0, itemIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT);
         mRemoteViews.setPendingIntentTemplate(R.id.widget_list, itemtPendingIntent);
@@ -159,7 +160,6 @@ public class MyBakingWidgetProvider extends AppWidgetProvider {
             mRemoteViews = new RemoteViews(context.getPackageName(), R.layout.my_baking_widget);
         String action = intent.getAction();
         //变成类变量
-        this.inputIntent = intent;
         AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
 
         if(action.equals(MyRecycleAdapter.APPWIDGET_UPDATE)){
@@ -180,9 +180,12 @@ public class MyBakingWidgetProvider extends AppWidgetProvider {
             // 处理点击广播事件
             int widgetID = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,
                     AppWidgetManager.INVALID_APPWIDGET_ID);
-            int viewIndex = intent.getIntExtra(EXTRA_LIST_ITEM_TEXT,0);
+            int viewIndex = intent.getIntExtra(EXTRA_LIST_ITEM_POS,0);
             //跳转的业务逻辑——跳到DetailActivity
+
             Intent detailIntent = new Intent(context, DetailActivity.class);
+            mItemUri = intent.getData();
+            detailIntent.setData(mItemUri);
             //将Intent包装成一个PendingIntent
             PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, detailIntent, 0);
             //
